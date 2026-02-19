@@ -5,6 +5,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ClipboardList, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,12 +15,14 @@ const SIMULATED_RADIOLOGIST = radiologists[0]; // r1 - Axel
 export default function ExamesDisponiveis() {
   const { exams, assumeExam } = useApp();
   const [confirm, setConfirm] = useState<string | null>(null);
+  const [softwareFilter, setSoftwareFilter] = useState<'Todos' | 'Axel' | 'Morita'>('Todos');
 
   const available = useMemo(() =>
     exams.filter(e =>
       e.status === 'Disponível' &&
-      SIMULATED_RADIOLOGIST.software.includes(e.software)
-    ), [exams]);
+      SIMULATED_RADIOLOGIST.software.includes(e.software) &&
+      (softwareFilter === 'Todos' || e.software === softwareFilter)
+    ), [exams, softwareFilter]);
 
   const handleAssume = (examId: string) => {
     assumeExam(examId, SIMULATED_RADIOLOGIST.id);
@@ -37,11 +40,31 @@ export default function ExamesDisponiveis() {
         </p>
       </div>
 
+      <ToggleGroup
+        type="single"
+        value={softwareFilter}
+        onValueChange={(v) => v && setSoftwareFilter(v as 'Todos' | 'Axel' | 'Morita')}
+        variant="outline"
+        size="sm"
+      >
+        <ToggleGroupItem value="Todos">Todos</ToggleGroupItem>
+        <ToggleGroupItem value="Axel" className="flex items-center gap-1.5">
+          <Monitor className="h-3.5 w-3.5" />Axel
+        </ToggleGroupItem>
+        <ToggleGroupItem value="Morita" className="flex items-center gap-1.5">
+          <Monitor className="h-3.5 w-3.5" />Morita
+        </ToggleGroupItem>
+      </ToggleGroup>
+
       {available.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
           <ClipboardList className="h-12 w-12 opacity-20" />
           <p className="text-base font-medium">Nenhum exame disponível</p>
-          <p className="text-sm">Não há exames compatíveis com {SIMULATED_RADIOLOGIST.software.join(', ')} no momento</p>
+          <p className="text-sm">
+            {softwareFilter === 'Todos'
+              ? `Não há exames compatíveis com ${SIMULATED_RADIOLOGIST.software.join(', ')} no momento`
+              : `Nenhum exame encontrado para o software ${softwareFilter}`}
+          </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
