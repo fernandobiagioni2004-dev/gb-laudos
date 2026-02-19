@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { clients, examTypes, calcValues, Exam } from '@/data/mockData';
+import { clients, examTypes, calcValues, Exam, ExamCategory } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
-import { PlusCircle, Upload, CheckCircle2 } from 'lucide-react';
-import { Software } from '@/data/mockData';
+import { PlusCircle, Upload, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 // Simulating as OralMax client
 const SIMULATED_CLIENT_ID = 'c1';
@@ -23,16 +23,26 @@ export default function NovoExame() {
   const [form, setForm] = useState({
     patientName: '',
     patientBirthDate: '',
+    examCategory: '' as ExamCategory | '',
     examTypeId: '',
-    software: '' as Software | '',
     observations: '',
+    urgent: false,
+    urgentTime: '',
   });
   const [fileUploaded, setFileUploaded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const filteredExamTypes = form.examCategory
+    ? examTypes.filter(t => t.category === form.examCategory)
+    : [];
+
   const handleSubmit = () => {
-    if (!form.patientName || !form.patientBirthDate || !form.examTypeId || !form.software) {
+    if (!form.patientName || !form.patientBirthDate || !form.examCategory || !form.examTypeId) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
+    if (form.urgent && !form.urgentTime) {
+      toast({ title: 'Informe o horário desejado para o exame urgente', variant: 'destructive' });
       return;
     }
     const today = new Date().toISOString().split('T')[0];
@@ -44,7 +54,8 @@ export default function NovoExame() {
       patientName: form.patientName,
       patientBirthDate: form.patientBirthDate,
       examTypeId: form.examTypeId,
-      software: form.software as Software,
+      examCategory: form.examCategory as ExamCategory,
+      software: 'Axel', // default, will be assigned later
       radiologistId: null,
       status: 'Disponível',
       clientValue,
@@ -54,6 +65,8 @@ export default function NovoExame() {
       createdAt: today,
       statusHistory: [{ status: 'Disponível', date: today, by: 'Portal Cliente' }],
       files: [],
+      urgent: form.urgent,
+      urgentTime: form.urgent ? form.urgentTime : undefined,
     };
     addExam(newExam);
     setSubmitted(true);
@@ -61,7 +74,7 @@ export default function NovoExame() {
   };
 
   const handleNew = () => {
-    setForm({ patientName: '', patientBirthDate: '', examTypeId: '', software: '', observations: '' });
+    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', urgent: false, urgentTime: '' });
     setFileUploaded(false);
     setSubmitted(false);
   };
@@ -125,21 +138,28 @@ export default function NovoExame() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Tipo de Exame *</Label>
-              <Select value={form.examTypeId} onValueChange={v => setForm(f => ({ ...f, examTypeId: v }))}>
+              <Label>Categoria do Exame *</Label>
+              <Select
+                value={form.examCategory}
+                onValueChange={v => setForm(f => ({ ...f, examCategory: v as ExamCategory, examTypeId: '' }))}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                 <SelectContent>
-                  {examTypes.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                  <SelectItem value="radiografia">Radiografia</SelectItem>
+                  <SelectItem value="tomografia">Tomografia</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Software Utilizado *</Label>
-              <Select value={form.software} onValueChange={v => setForm(f => ({ ...f, software: v as Software }))}>
-                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <Label>Tipo de Exame *</Label>
+              <Select
+                value={form.examTypeId}
+                onValueChange={v => setForm(f => ({ ...f, examTypeId: v }))}
+                disabled={!form.examCategory}
+              >
+                <SelectTrigger><SelectValue placeholder={form.examCategory ? 'Selecionar...' : 'Escolha a categoria primeiro'} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Axel">Axel</SelectItem>
-                  <SelectItem value="Morita">Morita</SelectItem>
+                  {filteredExamTypes.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -153,6 +173,39 @@ export default function NovoExame() {
               rows={3}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Urgência */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Urgência</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <Label htmlFor="urgent-switch" className="cursor-pointer">Marcar como urgente</Label>
+            </div>
+            <Switch
+              id="urgent-switch"
+              checked={form.urgent}
+              onCheckedChange={v => setForm(f => ({ ...f, urgent: v, urgentTime: v ? f.urgentTime : '' }))}
+            />
+          </div>
+          {form.urgent && (
+            <div className="space-y-1.5 border-l-2 border-amber-500/50 pl-4 animate-in slide-in-from-top-2">
+              <Label>Para que horas você precisa do exame? *</Label>
+              <Input
+                type="time"
+                value={form.urgentTime}
+                onChange={e => setForm(f => ({ ...f, urgentTime: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Informe o horário desejado para priorização do laudo.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
