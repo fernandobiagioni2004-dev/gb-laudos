@@ -25,6 +25,7 @@ import MeusExamesExterno from "@/pages/externo/MeusExames";
 
 // Shared
 import MeuPerfil from "@/pages/shared/MeuPerfil";
+import Calendario from "@/pages/shared/Calendario";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ function AppRoutes() {
             <Route path="/radiologistas" element={<Radiologistas />} />
             <Route path="/tabelas-preco" element={<TabelasPreco />} />
             <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/calendario" element={<Calendario />} />
           </>
         )}
 
@@ -54,6 +56,7 @@ function AppRoutes() {
             <Route path="/exames-disponiveis" element={<ExamesDisponiveis />} />
             <Route path="/meus-exames" element={<MeusExamesRadiologista />} />
             <Route path="/meu-financeiro" element={<MeuFinanceiro />} />
+            <Route path="/calendario" element={<Calendario />} />
           </>
         )}
 

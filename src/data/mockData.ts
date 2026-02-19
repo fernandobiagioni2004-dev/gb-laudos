@@ -137,6 +137,27 @@ function makeExam(
   };
 }
 
+// ─── Calendar Events ──────────────────────────────────────────────────────────
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  type: 'ferias' | 'reuniao';
+  startDate: string;
+  endDate: string;
+  participants: string[]; // IDs: 'admin', 'r1', 'r2', 'r3', 'r4'
+  description: string;
+  createdBy: string;
+}
+
+export const initialCalendarEvents: CalendarEvent[] = [
+  { id: 'ev1', title: 'Férias - Dr. Carlos Menezes', type: 'ferias', startDate: '2026-02-24', endDate: '2026-02-28', participants: ['r1'], description: 'Período de férias programadas', createdBy: 'admin' },
+  { id: 'ev2', title: 'Férias - Dra. Juliana Costa', type: 'ferias', startDate: '2026-03-10', endDate: '2026-03-14', participants: ['r4'], description: 'Férias regulamentares', createdBy: 'admin' },
+  { id: 'ev3', title: 'Reunião de alinhamento', type: 'reuniao', startDate: '2026-02-20', endDate: '2026-02-20', participants: ['admin', 'r1'], description: 'Alinhamento sobre novos processos de laudo', createdBy: 'admin' },
+  { id: 'ev4', title: 'Reunião de equipe Morita', type: 'reuniao', startDate: '2026-02-25', endDate: '2026-02-25', participants: ['admin', 'r3', 'r4'], description: 'Discussão sobre fluxo de exames Morita', createdBy: 'admin' },
+  { id: 'ev5', title: 'Reunião geral', type: 'reuniao', startDate: '2026-03-03', endDate: '2026-03-03', participants: ['admin', 'r1', 'r2', 'r3', 'r4'], description: 'Reunião mensal com toda a equipe', createdBy: 'admin' },
+  { id: 'ev6', title: 'Reunião Axel - qualidade', type: 'reuniao', startDate: '2026-02-21', endDate: '2026-02-21', participants: ['admin', 'r2'], description: 'Revisão de qualidade dos laudos Axel', createdBy: 'admin' },
+];
+
 export const initialExams: Exam[] = [
   makeExam('EX001', 'c1', 'João Silva',        '1985-03-12', 'et1', 'Axel',   'r1', 'Finalizado',  '2026-02-01'),
   makeExam('EX002', 'c1', 'Maria Oliveira',    '1992-07-22', 'et2', 'Axel',   'r2', 'Finalizado',  '2026-02-02'),

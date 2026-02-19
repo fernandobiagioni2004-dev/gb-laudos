@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, UserCheck, DollarSign, BarChart3,
-  User, ClipboardList, Wallet, PlusCircle, ChevronDown, LogOut,
+  User, ClipboardList, Wallet, PlusCircle, ChevronDown, LogOut, CalendarDays,
 } from 'lucide-react';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
@@ -41,6 +41,7 @@ const adminNav = [
   { title: 'Radiologistas',    url: '/radiologistas',    icon: UserCheck },
   { title: 'Tabelas de Preço', url: '/tabelas-preco',   icon: DollarSign },
   { title: 'Relatórios',       url: '/relatorios',       icon: BarChart3 },
+  { title: 'Calendário',       url: '/calendario',       icon: CalendarDays },
   { title: 'Meu Perfil',       url: '/perfil',           icon: User },
 ];
 
@@ -48,6 +49,7 @@ const radiologistaNav = [
   { title: 'Exames Disponíveis', url: '/exames-disponiveis', icon: ClipboardList },
   { title: 'Meus Exames',        url: '/meus-exames',        icon: FileText },
   { title: 'Meu Financeiro',     url: '/meu-financeiro',     icon: Wallet },
+  { title: 'Calendário',         url: '/calendario',         icon: CalendarDays },
   { title: 'Meu Perfil',         url: '/perfil',             icon: User },
 ];
 

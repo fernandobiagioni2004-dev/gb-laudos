@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Role, Exam, initialExams, calcValues } from '@/data/mockData';
+import { Role, Exam, initialExams, calcValues, CalendarEvent, initialCalendarEvents } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
 interface AppContextValue {
@@ -12,6 +12,9 @@ interface AppContextValue {
   assumeExam: (examId: string, radiologistId: string) => void;
   finalizeExam: (examId: string) => void;
   cancelExam: (examId: string) => void;
+  calendarEvents: CalendarEvent[];
+  addCalendarEvent: (event: CalendarEvent) => void;
+  removeCalendarEvent: (eventId: string) => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -20,6 +23,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<Role>('admin');
   const [switching, setSwitching] = useState(false);
   const [exams, setExams] = useState<Exam[]>(initialExams);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
 
   const setRole = useCallback((newRole: Role) => {
     setSwitching(true);
@@ -98,8 +102,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: 'Exame cancelado', description: `Exame ${examId} foi cancelado.`, variant: 'destructive' });
   }, []);
 
+  const addCalendarEvent = useCallback((event: CalendarEvent) => {
+    setCalendarEvents(prev => [...prev, event]);
+    toast({ title: '📅 Reunião criada!', description: `"${event.title}" adicionada ao calendário.` });
+  }, []);
+
+  const removeCalendarEvent = useCallback((eventId: string) => {
+    setCalendarEvents(prev => prev.filter(e => e.id !== eventId));
+    toast({ title: 'Evento removido', description: 'O evento foi removido do calendário.' });
+  }, []);
+
   return (
-    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam }}>
+    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam, calendarEvents, addCalendarEvent, removeCalendarEvent }}>
       {children}
     </AppContext.Provider>
   );
