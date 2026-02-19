@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { clients, examTypes, calcValues, Exam, ExamCategory } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
-import { PlusCircle, Upload, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Upload, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 // Simulating as OralMax client
 const SIMULATED_CLIENT_ID = 'c1';
@@ -30,7 +30,8 @@ export default function NovoExame() {
     urgentDate: '',
     urgentTime: '',
   });
-  const [fileUploaded, setFileUploaded] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const filteredExamTypes = form.examCategory
@@ -77,7 +78,8 @@ export default function NovoExame() {
 
   const handleNew = () => {
     setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', urgent: false, urgentDate: '', urgentTime: '' });
-    setFileUploaded(false);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setSubmitted(false);
   };
 
@@ -230,22 +232,58 @@ export default function NovoExame() {
           <CardTitle className="text-sm">Arquivos do Exame</CardTitle>
         </CardHeader>
         <CardContent>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (!file.name.toLowerCase().endsWith('.zip')) {
+                toast({ title: 'Formato inválido', description: 'Apenas arquivos .zip são aceitos.', variant: 'destructive' });
+                e.target.value = '';
+                return;
+              }
+              if (file.size > 1 * 1024 * 1024 * 1024) {
+                toast({ title: 'Arquivo muito grande', description: 'O tamanho máximo é 1GB.', variant: 'destructive' });
+                e.target.value = '';
+                return;
+              }
+              setSelectedFile(file);
+            }}
+          />
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              fileUploaded ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-border hover:border-primary/50'
+              selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-border hover:border-primary/50'
             }`}
-            onClick={() => setFileUploaded(true)}
+            onClick={() => !selectedFile && fileInputRef.current?.click()}
           >
-            {fileUploaded ? (
+            {selectedFile ? (
               <div className="text-emerald-400">
                 <CheckCircle2 className="h-6 w-6 mx-auto mb-2" />
-                <p className="text-sm font-medium">imagens_exame.dcm — Upload concluído</p>
+                <p className="text-sm font-medium">
+                  {selectedFile.name} — {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFile(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                >
+                  <X className="h-4 w-4 mr-1" /> Remover arquivo
+                </Button>
               </div>
             ) : (
               <div className="text-muted-foreground">
                 <Upload className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Clique para fazer upload (simulado)</p>
-                <p className="text-xs mt-1">DICOM, JPEG, PNG — até 200MB</p>
+                <p className="text-sm">Clique para fazer upload</p>
+                <p className="text-xs mt-1">Arquivos ZIP — até 1GB</p>
               </div>
             )}
           </div>
