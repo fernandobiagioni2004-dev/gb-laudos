@@ -1,79 +1,51 @@
 
 
-## Calendário — Nova aba para Admin e Radiologista
+## Ajustes no Calendário: Horário nas Reuniões + Menu de Ações
 
-### Resumo
-Adicionar uma tela de **Calendário** acessível pelos perfis de Administrador e Radiologista, mostrando eventos como férias de colaboradores e reuniões. As reuniões possuem visibilidade restrita aos participantes envolvidos.
-
----
-
-### 1. Mock Data — Eventos de Calendário
+### 1. Atualizar o modelo de dados
 
 **Arquivo:** `src/data/mockData.ts`
 
-Adicionar novos tipos e dados:
+- Adicionar campos opcionais ao `CalendarEvent`: `time` (string, ex: "14:00") e `duration` (number, em minutos, ex: 30, 60)
+- Atualizar os eventos mock de reuniao para incluir horario e duracao (ex: `time: '14:00', duration: 60`)
 
-- **CalendarEvent** com campos: `id`, `title`, `type` (`'ferias' | 'reuniao'`), `startDate`, `endDate`, `participants` (array de IDs de radiologistas/admin), `description`, `createdBy`
-- Dados mock pré-definidos:
-  - 2-3 eventos de férias (ex: Dr. Carlos de férias de 24/02 a 28/02)
-  - 3-4 reuniões com participantes diferentes (ex: reunião entre Admin e Dr. Carlos, outra entre Admin, Dra. Ana e Dr. Ricardo)
-
----
-
-### 2. Estado Global — Gerenciar Eventos
+### 2. Adicionar funcao de atualizar evento no contexto
 
 **Arquivo:** `src/context/AppContext.tsx`
 
-- Adicionar estado `calendarEvents` com os eventos mock iniciais
-- Função `addCalendarEvent` para criar novas reuniões
-- Função `removeCalendarEvent` para remover eventos
-- Expor no contexto
+- Adicionar `updateCalendarEvent(event: CalendarEvent)` ao contexto e interface
+- Essa funcao substitui o evento pelo ID no array de eventos
 
----
+### 3. Reformular o dialog de criacao de reuniao
 
-### 3. Tela do Calendário
+**Arquivo:** `src/pages/shared/Calendario.tsx`
 
-**Novo arquivo:** `src/pages/shared/Calendario.tsx`
+Substituir os campos "Data inicio" e "Data fim" por:
+- **Data** (campo unico de data)
+- **Horario** (input type="time", ex: 14:00)
+- **Duracao** (select com opcoes: 15min, 30min, 45min, 1h, 1h30, 2h)
 
-- Visualização mensal usando o componente `Calendar` (react-day-picker) já existente no projeto
-- Dias com eventos recebem indicadores visuais (dots coloridos)
-- Ao clicar em um dia, exibir lista de eventos daquela data em um painel lateral ou abaixo do calendário
-- **Filtro de visibilidade:**
-  - Admin vê todos os eventos (férias e todas as reuniões)
-  - Radiologista vê: todas as férias + apenas reuniões onde ele é participante (usando o radiologista simulado, `r1`)
-- Cores diferentes por tipo: férias em laranja/amarelo, reuniões em azul/roxo
-- Botao "Nova Reunião" abre um dialog para criar evento
+Ao salvar, `startDate` e `endDate` serao iguais (mesmo dia), e os novos campos `time` e `duration` serao preenchidos.
 
----
+### 4. Exibir horario e duracao nos eventos
 
-### 4. Dialog para Criar Reunião
+No painel lateral de detalhes do dia, mostrar para reunioes:
+- Horario: "14:00" e duracao: "1h" ao lado da data
+- Ex: "20/02/2026 as 14:00 (1h)"
 
-Dentro da tela do calendário:
+### 5. Menu de acoes ("...") em cada evento
 
-- Campos: Titulo, Data inicio, Data fim, Participantes (multi-select com checkboxes dos radiologistas e admin), Descrição
-- Ao salvar, evento adicionado via `addCalendarEvent`
-- Toast de confirmacao
-- A reunião criada so aparece para os participantes selecionados
+Adicionar um `DropdownMenu` com icone `MoreVertical` (tres pontinhos) em cada card de evento no painel lateral:
+- **Editar** - abre o dialog pre-preenchido com os dados do evento para edicao
+- **Excluir** - chama `removeCalendarEvent` com confirmacao via toast
 
----
+Para editar, reutilizar o mesmo dialog de criacao com estado de edicao (`editingEvent`). Se `editingEvent` estiver preenchido, o dialog mostra "Editar Reuniao" e ao salvar chama `updateCalendarEvent`.
 
-### 5. Navegação
+### Detalhes tecnicos
 
-**Arquivo:** `src/components/AppSidebar.tsx`
-
-- Adicionar item "Calendário" no menu do Admin (entre Relatórios e Meu Perfil) com icone `CalendarDays`
-- Adicionar item "Calendário" no menu do Radiologista (entre Meu Financeiro e Meu Perfil)
-
-**Arquivo:** `src/App.tsx`
-
-- Adicionar rota `/calendario` para os perfis admin e radiologista
-
----
-
-### Detalhes Tecnicos
-
-- O componente `Calendar` do shadcn/react-day-picker sera usado para renderizar o mes, com `modifiers` e `modifiersStyles` para destacar dias com eventos
-- Multi-select de participantes: checkboxes dentro de um Popover com lista dos 4 radiologistas + "Administrador"
-- Eventos de ferias sao visiveis para todos (admin e radiologistas)
-- Reunioes filtradas por `participants.includes(currentUserId)` onde admin usa id fixo `'admin'` e radiologista usa `'r1'`
+- Importar `DropdownMenu`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuTrigger` do shadcn
+- Importar `MoreVertical` do lucide-react
+- Estado `editingEvent: CalendarEvent | null` para controlar modo edicao vs criacao
+- A duracao sera armazenada em minutos no campo `duration` e formatada para exibicao (ex: 60 -> "1h", 90 -> "1h30")
+- Eventos de ferias tambem terao o menu "..." mas so com opcao de excluir (admin only)
 
