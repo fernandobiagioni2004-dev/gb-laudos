@@ -59,7 +59,7 @@ export default function NovoExame() {
       patientBirthDate: form.patientBirthDate,
       examTypeId: form.examTypeId,
       examCategory: form.examCategory as ExamCategory,
-      software: simClient?.software ?? 'Axel',
+      software: simClient?.software?.[0] ?? 'Axel',
       radiologistId: null,
       status: 'Disponível',
       clientValue,

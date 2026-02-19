@@ -9,7 +9,7 @@ export interface Client {
   name: string;
   cnpj: string;
   email: string;
-  software: Software;
+  software: Software[];
   status: 'Ativo' | 'Inativo';
 }
 
@@ -66,9 +66,9 @@ export interface Exam {
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
 export const clients: Client[] = [
-  { id: 'c1', name: 'Clínica OralMax', cnpj: '12.345.678/0001-90', email: 'contato@oralmax.com.br', software: 'Axel', status: 'Ativo' },
-  { id: 'c2', name: 'Centro de Imagem Dental', cnpj: '23.456.789/0001-01', email: 'admin@cidental.com.br', software: 'Axel', status: 'Ativo' },
-  { id: 'c3', name: 'OdontoPrime', cnpj: '34.567.890/0001-12', email: 'info@odontoprime.com.br', software: 'Morita', status: 'Ativo' },
+  { id: 'c1', name: 'Clínica OralMax', cnpj: '12.345.678/0001-90', email: 'contato@oralmax.com.br', software: ['Axel'], status: 'Ativo' },
+  { id: 'c2', name: 'Centro de Imagem Dental', cnpj: '23.456.789/0001-01', email: 'admin@cidental.com.br', software: ['Axel', 'Morita'], status: 'Ativo' },
+  { id: 'c3', name: 'OdontoPrime', cnpj: '34.567.890/0001-12', email: 'info@odontoprime.com.br', software: ['Morita'], status: 'Ativo' },
 ];
 
 // ─── Exam Types ───────────────────────────────────────────────────────────────
