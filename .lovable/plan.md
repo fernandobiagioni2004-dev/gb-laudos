@@ -1,52 +1,38 @@
 
 
-## Gerenciamento completo de Clientes (CRUD + Software)
+## Permitir multiplos softwares por cliente + badges estilizados
 
-### Visao geral
+### Resumo
 
-Transformar a tela de Clientes de uma listagem estatica em um modulo completo com criacao, edicao e exclusao de clientes. Cada cliente passara a ter um campo de software (Axel/Morita) que sera vinculado automaticamente aos exames solicitados por ele.
+Alterar o campo `software` do cliente de um valor unico (`Software`) para um array (`Software[]`), igual ao que ja existe para radiologistas. Tambem aplicar o mesmo estilo visual de badges com icone de monitor usado na aba Radiologistas.
 
 ### Alteracoes por arquivo
 
-#### 1. `src/data/mockData.ts` -- Adicionar software ao Client
+#### 1. `src/data/mockData.ts`
 
-- Adicionar campo `software: Software` na interface `Client`
-- Atualizar os 3 clientes existentes com um software atribuido (ex: c1 e c2 = Axel, c3 = Morita)
+- Mudar `Client.software` de `Software` para `Software[]`
+- Atualizar dados mock: ex. `c1: ['Axel']`, `c2: ['Axel', 'Morita']`, `c3: ['Morita']`
 
-#### 2. `src/context/AppContext.tsx` -- Gerenciar clientes no estado
+#### 2. `src/pages/admin/Clientes.tsx`
 
-Atualmente os clientes vem de uma constante estatica. Para suportar CRUD, o contexto precisa gerencia-los:
+**Badges no card** (substituir o `Badge` simples):
+- Usar o mesmo estilo da aba Radiologistas: badges coloridos com icone `Monitor`
+  - Axel: `bg-violet-500/15 text-violet-400`
+  - Morita: `bg-sky-500/15 text-sky-400`
+- Renderizar um badge para cada software do array
 
-- Adicionar estado `clients` (inicializado com a lista de `mockData`)
-- Expor no contexto: `clients`, `addClient`, `updateClient`, `removeClient`
-- `addClient(client)`: gera ID unico e adiciona ao estado
-- `updateClient(client)`: substitui o cliente pelo ID
-- `removeClient(clientId)`: remove o cliente (exibir toast de confirmacao)
+**Formulario de criar/editar**:
+- Substituir o `Select` unico de software por checkboxes ou botoes toggle para selecionar multiplos softwares
+- O estado `form.software` passa de `string` para `Software[]`
+- Validacao: pelo menos um software deve estar selecionado
 
-#### 3. `src/pages/admin/Clientes.tsx` -- CRUD completo
+**Dialog de detalhes**:
+- Exibir os softwares separados por virgula ou como badges
 
-**Botao "Novo Cliente"** no cabecalho:
-- Abre um Dialog com formulario contendo: Nome, CNPJ, Email, Software (Select: Axel/Morita), Status (Ativo/Inativo)
-- Validacao basica dos campos obrigatorios
-- Ao salvar, chama `addClient` e fecha o dialog
+#### 3. `src/pages/externo/NovoExame.tsx`
 
-**Menu "..." em cada card de cliente** (DropdownMenu com MoreHorizontal icon):
-- Posicionado no canto superior direito do card, ao lado do badge de status
-- Opcoes:
-  - **Editar**: abre o mesmo Dialog do criar, preenchido com os dados do cliente, permitindo alterar qualquer campo
-  - **Excluir**: abre um AlertDialog de confirmacao antes de remover
+- Ajustar a referencia a `simClient?.software` -- como agora e um array, usar o primeiro software do array como padrao (`simClient?.software[0]`) ou permitir selecao caso o cliente tenha mais de um
 
-**Exibir software no card**:
-- Mostrar o software do cliente como um badge/tag no card (ex: "Axel" ou "Morita")
+#### 4. `src/context/AppContext.tsx`
 
-#### 4. `src/pages/externo/NovoExame.tsx` -- Vincular software automaticamente
-
-- Quando o usuario externo cria um exame, o campo `software` do exame sera preenchido automaticamente com base no software do cliente (vindo do contexto), em vez de ser fixo ou escolhido manualmente
-
-### Ordem de implementacao
-
-1. Atualizar interface `Client` e dados mock
-2. Mover clientes para o estado do AppContext com funcoes CRUD
-3. Implementar UI completa em Clientes.tsx (botao criar, dialog, menu "...", editar, excluir)
-4. Conectar software do cliente ao NovoExame
-
+- Nenhuma alteracao necessaria na logica (ja aceita `Client` generico), mas a tipagem se atualiza automaticamente com a mudanca na interface
