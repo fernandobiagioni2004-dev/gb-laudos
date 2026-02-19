@@ -1,22 +1,32 @@
 
 
-## Adicionar Data + Horario na Urgencia
+## Corrigir Upload de Arquivos no Novo Exame
 
-### Alteracao
+### Problema atual
+O botao de upload nao funciona de verdade -- ele apenas simula o upload setando um booleano (`setFileUploaded(true)`) ao clicar na area. Nao ha nenhum `<input type="file">` real no componente.
+
+### Solucao
 
 **Arquivo:** `src/pages/externo/NovoExame.tsx`
 
-No bloco de urgencia (linhas 196-208), substituir o campo unico de horario por dois campos lado a lado:
+1. **Adicionar um `<input type="file">` oculto** com `ref` para ser acionado ao clicar na area de upload
+   - Aceitar arquivos `.zip` (`accept=".zip"`)
+   - Usar um `useRef<HTMLInputElement>` para referenciar o input
+2. **Ao clicar na area de drop**, chamar `inputRef.current?.click()` para abrir o seletor de arquivos do sistema
+3. **Ao selecionar o arquivo**, validar:
+   - Se o arquivo e `.zip`
+   - Se o tamanho e menor ou igual a 1GB (1073741824 bytes)
+   - Se invalido, mostrar toast de erro
+4. **Guardar o arquivo selecionado** em um estado `selectedFile` (`File | null`) para exibir o nome e tamanho na area de upload
+5. **Atualizar a area visual** para mostrar o nome do arquivo e o tamanho formatado (ex: "exame.zip -- 245 MB")
+6. **Atualizar o texto de instrucao** para "Arquivos ZIP -- ate 1GB"
+7. **Adicionar botao de remover** o arquivo selecionado (um X pequeno) para permitir trocar o arquivo
+8. **Resetar o arquivo** no `handleNew`
 
-1. **Data** - `Input type="date"` para o usuario escolher a data desejada para o exame urgente
-2. **Horario** - `Input type="time"` (ja existente) para o horario desejado
+### Detalhes tecnicos
 
-### Detalhes
+- O upload sera local/client-side apenas (sem backend), armazenando a referencia do `File` no state
+- Nenhum arquivo novo sera criado; apenas `src/pages/externo/NovoExame.tsx` sera editado
+- O `fileUploaded` booleano existente sera substituido por `selectedFile: File | null`
+- A validacao de tamanho usa `file.size <= 1 * 1024 * 1024 * 1024`
 
-- Adicionar campo `urgentDate` ao estado do formulario (string, formato date)
-- Exibir os dois campos em um `grid grid-cols-2 gap-4` dentro do bloco condicional de urgencia
-- Atualizar a validacao no `handleSubmit` para exigir tanto `urgentDate` quanto `urgentTime` quando urgente
-- Atualizar o `handleNew` para limpar `urgentDate`
-- Atualizar o label para "Para quando voce precisa do exame? *"
-- Atualizar o modelo `Exam` em `src/data/mockData.ts` para incluir `urgentDate?: string`
-- Salvar `urgentDate` no objeto do exame criado
