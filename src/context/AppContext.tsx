@@ -14,6 +14,7 @@ interface AppContextValue {
   cancelExam: (examId: string) => void;
   calendarEvents: CalendarEvent[];
   addCalendarEvent: (event: CalendarEvent) => void;
+  updateCalendarEvent: (event: CalendarEvent) => void;
   removeCalendarEvent: (eventId: string) => void;
 }
 
@@ -107,13 +108,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: '📅 Reunião criada!', description: `"${event.title}" adicionada ao calendário.` });
   }, []);
 
+  const updateCalendarEvent = useCallback((event: CalendarEvent) => {
+    setCalendarEvents(prev => prev.map(e => e.id === event.id ? event : e));
+    toast({ title: '✏️ Evento atualizado!', description: `"${event.title}" foi atualizado.` });
+  }, []);
+
   const removeCalendarEvent = useCallback((eventId: string) => {
     setCalendarEvents(prev => prev.filter(e => e.id !== eventId));
     toast({ title: 'Evento removido', description: 'O evento foi removido do calendário.' });
   }, []);
 
   return (
-    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam, calendarEvents, addCalendarEvent, removeCalendarEvent }}>
+    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam, calendarEvents, addCalendarEvent, updateCalendarEvent, removeCalendarEvent }}>
       {children}
     </AppContext.Provider>
   );

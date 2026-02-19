@@ -144,18 +144,20 @@ export interface CalendarEvent {
   type: 'ferias' | 'reuniao';
   startDate: string;
   endDate: string;
-  participants: string[]; // IDs: 'admin', 'r1', 'r2', 'r3', 'r4'
+  participants: string[];
   description: string;
   createdBy: string;
+  time?: string;
+  duration?: number;
 }
 
 export const initialCalendarEvents: CalendarEvent[] = [
   { id: 'ev1', title: 'Férias - Dr. Carlos Menezes', type: 'ferias', startDate: '2026-02-24', endDate: '2026-02-28', participants: ['r1'], description: 'Período de férias programadas', createdBy: 'admin' },
   { id: 'ev2', title: 'Férias - Dra. Juliana Costa', type: 'ferias', startDate: '2026-03-10', endDate: '2026-03-14', participants: ['r4'], description: 'Férias regulamentares', createdBy: 'admin' },
-  { id: 'ev3', title: 'Reunião de alinhamento', type: 'reuniao', startDate: '2026-02-20', endDate: '2026-02-20', participants: ['admin', 'r1'], description: 'Alinhamento sobre novos processos de laudo', createdBy: 'admin' },
-  { id: 'ev4', title: 'Reunião de equipe Morita', type: 'reuniao', startDate: '2026-02-25', endDate: '2026-02-25', participants: ['admin', 'r3', 'r4'], description: 'Discussão sobre fluxo de exames Morita', createdBy: 'admin' },
-  { id: 'ev5', title: 'Reunião geral', type: 'reuniao', startDate: '2026-03-03', endDate: '2026-03-03', participants: ['admin', 'r1', 'r2', 'r3', 'r4'], description: 'Reunião mensal com toda a equipe', createdBy: 'admin' },
-  { id: 'ev6', title: 'Reunião Axel - qualidade', type: 'reuniao', startDate: '2026-02-21', endDate: '2026-02-21', participants: ['admin', 'r2'], description: 'Revisão de qualidade dos laudos Axel', createdBy: 'admin' },
+  { id: 'ev3', title: 'Reunião de alinhamento', type: 'reuniao', startDate: '2026-02-20', endDate: '2026-02-20', participants: ['admin', 'r1'], description: 'Alinhamento sobre novos processos de laudo', createdBy: 'admin', time: '14:00', duration: 60 },
+  { id: 'ev4', title: 'Reunião de equipe Morita', type: 'reuniao', startDate: '2026-02-25', endDate: '2026-02-25', participants: ['admin', 'r3', 'r4'], description: 'Discussão sobre fluxo de exames Morita', createdBy: 'admin', time: '10:00', duration: 90 },
+  { id: 'ev5', title: 'Reunião geral', type: 'reuniao', startDate: '2026-03-03', endDate: '2026-03-03', participants: ['admin', 'r1', 'r2', 'r3', 'r4'], description: 'Reunião mensal com toda a equipe', createdBy: 'admin', time: '09:00', duration: 120 },
+  { id: 'ev6', title: 'Reunião Axel - qualidade', type: 'reuniao', startDate: '2026-02-21', endDate: '2026-02-21', participants: ['admin', 'r2'], description: 'Revisão de qualidade dos laudos Axel', createdBy: 'admin', time: '15:30', duration: 45 },
 ];
 
 export const initialExams: Exam[] = [
