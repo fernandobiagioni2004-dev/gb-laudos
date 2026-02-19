@@ -26,6 +26,7 @@ export default function NovoExame() {
     examCategory: '' as ExamCategory | '',
     examTypeId: '',
     observations: '',
+    purpose: '',
     urgent: false,
     urgentDate: '',
     urgentTime: '',
@@ -77,7 +78,7 @@ export default function NovoExame() {
   };
 
   const handleNew = () => {
-    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', urgent: false, urgentDate: '', urgentTime: '' });
+    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', purpose: '', urgent: false, urgentDate: '', urgentTime: '' });
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setSubmitted(false);
@@ -169,12 +170,11 @@ export default function NovoExame() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Observações</Label>
-            <Textarea
-              placeholder="Informações adicionais, queixa principal..."
-              value={form.observations}
-              onChange={e => setForm(f => ({ ...f, observations: e.target.value }))}
-              rows={3}
+            <Label>Finalidade do Exame</Label>
+            <Input
+              placeholder="Ex: Implante, Ortodontia, Avaliação de cisto..."
+              value={form.purpose}
+              onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}
             />
           </div>
         </CardContent>
@@ -223,6 +223,21 @@ export default function NovoExame() {
               </p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Observações */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Observações</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="Informações adicionais, queixa principal..."
+            value={form.observations}
+            onChange={e => setForm(f => ({ ...f, observations: e.target.value }))}
+            rows={3}
+          />
         </CardContent>
       </Card>
 
