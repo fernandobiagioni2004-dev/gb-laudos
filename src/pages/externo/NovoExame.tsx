@@ -27,6 +27,7 @@ export default function NovoExame() {
     examTypeId: '',
     observations: '',
     urgent: false,
+    urgentDate: '',
     urgentTime: '',
   });
   const [fileUploaded, setFileUploaded] = useState(false);
@@ -41,8 +42,8 @@ export default function NovoExame() {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
-    if (form.urgent && !form.urgentTime) {
-      toast({ title: 'Informe o horário desejado para o exame urgente', variant: 'destructive' });
+    if (form.urgent && (!form.urgentDate || !form.urgentTime)) {
+      toast({ title: 'Informe a data e o horário desejados para o exame urgente', variant: 'destructive' });
       return;
     }
     const today = new Date().toISOString().split('T')[0];
@@ -66,6 +67,7 @@ export default function NovoExame() {
       statusHistory: [{ status: 'Disponível', date: today, by: 'Portal Cliente' }],
       files: [],
       urgent: form.urgent,
+      urgentDate: form.urgent ? form.urgentDate : undefined,
       urgentTime: form.urgent ? form.urgentTime : undefined,
     };
     addExam(newExam);
@@ -74,7 +76,7 @@ export default function NovoExame() {
   };
 
   const handleNew = () => {
-    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', urgent: false, urgentTime: '' });
+    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', urgent: false, urgentDate: '', urgentTime: '' });
     setFileUploaded(false);
     setSubmitted(false);
   };
@@ -190,19 +192,32 @@ export default function NovoExame() {
             <Switch
               id="urgent-switch"
               checked={form.urgent}
-              onCheckedChange={v => setForm(f => ({ ...f, urgent: v, urgentTime: v ? f.urgentTime : '' }))}
+              onCheckedChange={v => setForm(f => ({ ...f, urgent: v, urgentDate: v ? f.urgentDate : '', urgentTime: v ? f.urgentTime : '' }))}
             />
           </div>
           {form.urgent && (
             <div className="space-y-1.5 border-l-2 border-amber-500/50 pl-4 animate-in slide-in-from-top-2">
-              <Label>Para que horas você precisa do exame? *</Label>
-              <Input
-                type="time"
-                value={form.urgentTime}
-                onChange={e => setForm(f => ({ ...f, urgentTime: e.target.value }))}
-              />
+              <Label>Para quando você precisa do exame? *</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Data</Label>
+                  <Input
+                    type="date"
+                    value={form.urgentDate}
+                    onChange={e => setForm(f => ({ ...f, urgentDate: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Horário</Label>
+                  <Input
+                    type="time"
+                    value={form.urgentTime}
+                    onChange={e => setForm(f => ({ ...f, urgentTime: e.target.value }))}
+                  />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Informe o horário desejado para priorização do laudo.
+                Informe a data e o horário desejados para priorização do laudo.
               </p>
             </div>
           )}

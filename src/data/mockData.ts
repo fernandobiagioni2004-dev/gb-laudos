@@ -59,6 +59,7 @@ export interface Exam {
   statusHistory: StatusHistoryEntry[];
   files: string[];
   urgent?: boolean;
+  urgentDate?: string;
   urgentTime?: string;
 }
 
