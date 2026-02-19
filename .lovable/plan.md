@@ -1,32 +1,28 @@
 
 
-## Corrigir Upload de Arquivos no Novo Exame
+## Reorganizar campos do formulario Novo Exame
 
-### Problema atual
-O botao de upload nao funciona de verdade -- ele apenas simula o upload setando um booleano (`setFileUploaded(true)`) ao clicar na area. Nao ha nenhum `<input type="file">` real no componente.
+### Alteracoes no arquivo `src/pages/externo/NovoExame.tsx`
 
-### Solucao
+1. **Adicionar campo "Finalidade do Exame"** logo abaixo dos selects de Categoria e Tipo de Exame (apos linha 170), dentro do card "Dados do Exame"
+   - Sera um `Input` de texto com placeholder "Ex: Implante, Ortodontia, Avaliacao de cisto..."
+   - Adicionar `purpose` ao estado do formulario
+   - Adicionar `purpose` no `handleNew` para resetar
 
-**Arquivo:** `src/pages/externo/NovoExame.tsx`
+2. **Mover "Observacoes" para acima do card de Arquivos**
+   - Remover o bloco de Observacoes (linhas 171-179) de dentro do card "Dados do Exame"
+   - Criar um novo Card proprio para Observacoes, posicionado entre o card de Urgencia e o card de Arquivos do Exame
 
-1. **Adicionar um `<input type="file">` oculto** com `ref` para ser acionado ao clicar na area de upload
-   - Aceitar arquivos `.zip` (`accept=".zip"`)
-   - Usar um `useRef<HTMLInputElement>` para referenciar o input
-2. **Ao clicar na area de drop**, chamar `inputRef.current?.click()` para abrir o seletor de arquivos do sistema
-3. **Ao selecionar o arquivo**, validar:
-   - Se o arquivo e `.zip`
-   - Se o tamanho e menor ou igual a 1GB (1073741824 bytes)
-   - Se invalido, mostrar toast de erro
-4. **Guardar o arquivo selecionado** em um estado `selectedFile` (`File | null`) para exibir o nome e tamanho na area de upload
-5. **Atualizar a area visual** para mostrar o nome do arquivo e o tamanho formatado (ex: "exame.zip -- 245 MB")
-6. **Atualizar o texto de instrucao** para "Arquivos ZIP -- ate 1GB"
-7. **Adicionar botao de remover** o arquivo selecionado (um X pequeno) para permitir trocar o arquivo
-8. **Resetar o arquivo** no `handleNew`
+### Ordem final dos cards
 
-### Detalhes tecnicos
+1. Dados do Paciente (nome, data nascimento)
+2. Dados do Exame (categoria, tipo, finalidade)
+3. Urgencia
+4. Observacoes (card proprio)
+5. Arquivos do Exame
+6. Botao Enviar
 
-- O upload sera local/client-side apenas (sem backend), armazenando a referencia do `File` no state
-- Nenhum arquivo novo sera criado; apenas `src/pages/externo/NovoExame.tsx` sera editado
-- O `fileUploaded` booleano existente sera substituido por `selectedFile: File | null`
-- A validacao de tamanho usa `file.size <= 1 * 1024 * 1024 * 1024`
+### Estado do formulario atualizado
+
+Adicionar `purpose: ''` ao estado inicial e ao reset em `handleNew`.
 
