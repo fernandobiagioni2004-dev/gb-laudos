@@ -11,14 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, CheckCircle2, XCircle, Eye, PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Eye, PlusCircle, MoreHorizontal, Pencil, Trash2, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 }
 
-const emptyForm = { name: '', cnpj: '', email: '', software: '' as Software | '', status: 'Ativo' as 'Ativo' | 'Inativo' };
+const emptyForm = { name: '', cnpj: '', email: '', software: [] as Software[], status: 'Ativo' as 'Ativo' | 'Inativo' };
 
 export default function Clientes() {
   const { exams, clients, addClient, updateClient, removeClient } = useApp();
@@ -54,12 +54,12 @@ export default function Clientes() {
   };
 
   const handleSave = () => {
-    if (!form.name || !form.cnpj || !form.email || !form.software) return;
+    if (!form.name || !form.cnpj || !form.email || form.software.length === 0) return;
     if (editingId) {
-      updateClient({ id: editingId, name: form.name, cnpj: form.cnpj, email: form.email, software: form.software as Software, status: form.status });
+      updateClient({ id: editingId, name: form.name, cnpj: form.cnpj, email: form.email, software: form.software, status: form.status });
     } else {
       const id = 'c' + Date.now();
-      addClient({ id, name: form.name, cnpj: form.cnpj, email: form.email, software: form.software as Software, status: form.status });
+      addClient({ id, name: form.name, cnpj: form.cnpj, email: form.email, software: form.software, status: form.status });
     }
     setFormOpen(false);
   };
@@ -95,7 +95,12 @@ export default function Clientes() {
                   <p className="text-xs text-muted-foreground">{c.email}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Badge variant="outline" className="text-xs">{c.software}</Badge>
+                  {c.software.map(sw => (
+                    <span key={sw} className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full', sw === 'Axel' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400')}>
+                      <Monitor className="h-3 w-3" />
+                      {sw}
+                    </span>
+                  ))}
                   <span className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full',
                     c.status === 'Ativo' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400',
                   )}>
@@ -147,7 +152,7 @@ export default function Clientes() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{detailClient?.name}</DialogTitle>
-            <DialogDescription>{detailClient?.cnpj} · {detailClient?.email} · Software: {detailClient?.software}</DialogDescription>
+            <DialogDescription>{detailClient?.cnpj} · {detailClient?.email} · Software: {detailClient?.software.join(', ')}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-muted/30 rounded-lg p-3 text-center">
@@ -205,13 +210,28 @@ export default function Clientes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Software *</Label>
-                <Select value={form.software} onValueChange={v => setForm(f => ({ ...f, software: v as Software }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Axel">Axel</SelectItem>
-                    <SelectItem value="Morita">Morita</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-3 pt-1">
+                  {(['Axel', 'Morita'] as Software[]).map(sw => {
+                    const checked = form.software.includes(sw);
+                    return (
+                      <label key={sw} className={cn('flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors', checked ? (sw === 'Axel' ? 'border-violet-500/50 bg-violet-500/10 text-violet-400' : 'border-sky-500/50 bg-sky-500/10 text-sky-400') : 'border-border text-muted-foreground hover:border-border/80')}>
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={checked}
+                          onChange={() => {
+                            setForm(f => ({
+                              ...f,
+                              software: checked ? f.software.filter(s => s !== sw) : [...f.software, sw],
+                            }));
+                          }}
+                        />
+                        <Monitor className="h-3.5 w-3.5" />
+                        <span className="text-sm font-medium">{sw}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Status</Label>
@@ -227,7 +247,7 @@ export default function Clientes() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.name || !form.cnpj || !form.email || !form.software}>
+            <Button onClick={handleSave} disabled={!form.name || !form.cnpj || !form.email || form.software.length === 0}>
               {editingId ? 'Salvar' : 'Criar Cliente'}
             </Button>
           </DialogFooter>
