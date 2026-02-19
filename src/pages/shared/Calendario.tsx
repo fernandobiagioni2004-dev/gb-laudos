@@ -7,14 +7,14 @@ import { ptBR } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CalendarIcon, Plus, Sun, Users, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Sun, Users, MoreVertical, Pencil, Trash2, Palmtree } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const participantOptions = [
@@ -42,15 +42,23 @@ export default function Calendario() {
   const { role, calendarEvents, addCalendarEvent, updateCalendarEvent, removeCalendarEvent } = useApp();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [feriasDialogOpen, setFeriasDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [editingFerias, setEditingFerias] = useState<CalendarEvent | null>(null);
 
-  // Form state
+  // Meeting form state
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newDuration, setNewDuration] = useState<number>(60);
   const [newParticipants, setNewParticipants] = useState<string[]>([]);
   const [newDescription, setNewDescription] = useState('');
+
+  // Vacation form state
+  const [feriasRadiologistId, setFeriasRadiologistId] = useState('');
+  const [feriasStartDate, setFeriasStartDate] = useState('');
+  const [feriasEndDate, setFeriasEndDate] = useState('');
+  const [feriasDescription, setFeriasDescription] = useState('');
 
   const currentUserId = role === 'admin' ? 'admin' : 'r1';
 
@@ -97,9 +105,22 @@ export default function Calendario() {
     setEditingEvent(null);
   };
 
+  const resetFeriasForm = () => {
+    setFeriasRadiologistId('');
+    setFeriasStartDate('');
+    setFeriasEndDate('');
+    setFeriasDescription('');
+    setEditingFerias(null);
+  };
+
   const openCreateDialog = () => {
     resetForm();
     setDialogOpen(true);
+  };
+
+  const openFeriasDialog = () => {
+    resetFeriasForm();
+    setFeriasDialogOpen(true);
   };
 
   const openEditDialog = (ev: CalendarEvent) => {
@@ -111,6 +132,15 @@ export default function Calendario() {
     setNewParticipants([...ev.participants]);
     setNewDescription(ev.description);
     setDialogOpen(true);
+  };
+
+  const openEditFeriasDialog = (ev: CalendarEvent) => {
+    setEditingFerias(ev);
+    setFeriasRadiologistId(ev.participants[0] || '');
+    setFeriasStartDate(ev.startDate);
+    setFeriasEndDate(ev.endDate);
+    setFeriasDescription(ev.description);
+    setFeriasDialogOpen(true);
   };
 
   const handleSaveEvent = () => {
@@ -136,6 +166,28 @@ export default function Calendario() {
     resetForm();
   };
 
+  const handleSaveFerias = () => {
+    if (!feriasRadiologistId || !feriasStartDate || !feriasEndDate) return;
+    const radName = radiologists.find(r => r.id === feriasRadiologistId)?.name ?? '';
+    const event: CalendarEvent = {
+      id: editingFerias ? editingFerias.id : `ev_${Date.now()}`,
+      title: `Férias - ${radName}`,
+      type: 'ferias',
+      startDate: feriasStartDate,
+      endDate: feriasEndDate,
+      participants: [feriasRadiologistId],
+      description: feriasDescription,
+      createdBy: editingFerias ? editingFerias.createdBy : currentUserId,
+    };
+    if (editingFerias) {
+      updateCalendarEvent(event);
+    } else {
+      addCalendarEvent(event);
+    }
+    setFeriasDialogOpen(false);
+    resetFeriasForm();
+  };
+
   const handleDeleteEvent = (ev: CalendarEvent) => {
     removeCalendarEvent(ev.id);
   };
@@ -145,6 +197,12 @@ export default function Calendario() {
     return radiologists.find(r => r.id === id)?.name ?? id;
   };
 
+  const getRadiologistInitial = (id: string) => {
+    const rad = radiologists.find(r => r.id === id);
+    if (!rad) return '?';
+    return rad.name.replace(/^(Dr\.|Dra\.)\s*/, '').charAt(0).toUpperCase();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -152,9 +210,17 @@ export default function Calendario() {
           <h1 className="text-2xl font-bold text-foreground">Calendário</h1>
           <p className="text-muted-foreground text-sm">Férias, reuniões e eventos da equipe</p>
         </div>
-        <Button onClick={openCreateDialog}><Plus className="h-4 w-4 mr-2" /> Nova Reunião</Button>
+        <div className="flex items-center gap-2">
+          {role === 'admin' && (
+            <Button variant="outline" onClick={openFeriasDialog}>
+              <Palmtree className="h-4 w-4 mr-2" /> Adicionar Férias
+            </Button>
+          )}
+          <Button onClick={openCreateDialog}><Plus className="h-4 w-4 mr-2" /> Nova Reunião</Button>
+        </div>
       </div>
 
+      {/* Meeting Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -217,6 +283,50 @@ export default function Calendario() {
         </DialogContent>
       </Dialog>
 
+      {/* Vacation Dialog */}
+      <Dialog open={feriasDialogOpen} onOpenChange={(open) => { setFeriasDialogOpen(open); if (!open) resetFeriasForm(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingFerias ? 'Editar Férias' : 'Adicionar Férias'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label>Radiologista</Label>
+              <Select value={feriasRadiologistId} onValueChange={setFeriasRadiologistId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o radiologista" />
+                </SelectTrigger>
+                <SelectContent>
+                  {radiologists.map(r => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Data início</Label>
+                <Input type="date" value={feriasStartDate} onChange={e => setFeriasStartDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Data fim</Label>
+                <Input type="date" value={feriasEndDate} onChange={e => setFeriasEndDate(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Descrição (opcional)</Label>
+              <Textarea value={feriasDescription} onChange={e => setFeriasDescription(e.target.value)} placeholder="Observações sobre as férias..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setFeriasDialogOpen(false); resetFeriasForm(); }}>Cancelar</Button>
+            <Button onClick={handleSaveFerias} disabled={!feriasRadiologistId || !feriasStartDate || !feriasEndDate}>
+              {editingFerias ? 'Salvar' : 'Criar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-4">
@@ -257,9 +367,12 @@ export default function Calendario() {
                   const hasFer = eventDays.ferias.some(d => isSameDay(d, date));
                   const hasReun = eventDays.reuniao.some(d => isSameDay(d, date));
                   return (
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span>{date.getDate()}</span>
-                      <div className="flex gap-0.5">
+                    <div className="relative flex flex-col items-center gap-0.5 w-full h-full justify-center">
+                      {hasFer && (
+                        <div className="absolute inset-x-1 inset-y-0 bg-amber-400/20 rounded-md" />
+                      )}
+                      <span className="relative z-10">{date.getDate()}</span>
+                      <div className="flex gap-0.5 relative z-10">
                         {hasFer && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
                         {hasReun && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
                       </div>
@@ -290,52 +403,90 @@ export default function Calendario() {
                   key={ev.id}
                   className={cn(
                     "rounded-lg border p-3 space-y-2",
-                    ev.type === 'ferias' ? 'border-amber-500/30 bg-amber-500/5' : 'border-blue-500/30 bg-blue-500/5'
+                    ev.type === 'ferias' ? 'border-amber-500/40 bg-amber-500/10' : 'border-blue-500/30 bg-blue-500/5'
                   )}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">{ev.title}</span>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="outline" className={ev.type === 'ferias' ? 'text-amber-600 border-amber-500/50' : 'text-blue-600 border-blue-500/50'}>
-                        {ev.type === 'ferias' ? <Sun className="h-3 w-3 mr-1" /> : <Users className="h-3 w-3 mr-1" />}
-                        {ev.type === 'ferias' ? 'Férias' : 'Reunião'}
-                      </Badge>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {ev.type === 'reuniao' && (
-                            <DropdownMenuItem onClick={() => openEditDialog(ev)}>
-                              <Pencil className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                          )}
-                          {(role === 'admin' || ev.type === 'reuniao') && (
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteEvent(ev)}>
-                              <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  {ev.description && <p className="text-xs text-muted-foreground">{ev.description}</p>}
-                  <div className="text-xs text-muted-foreground">
-                    {ev.type === 'reuniao' && ev.time
-                      ? `${format(parseISO(ev.startDate), 'dd/MM/yyyy')} às ${ev.time}${ev.duration ? ` (${formatDuration(ev.duration)})` : ''}`
-                      : ev.startDate === ev.endDate
-                        ? format(parseISO(ev.startDate), 'dd/MM/yyyy')
-                        : `${format(parseISO(ev.startDate), 'dd/MM')} - ${format(parseISO(ev.endDate), 'dd/MM/yyyy')}`
-                    }
-                  </div>
-                  {ev.type === 'reuniao' && (
-                    <div className="flex flex-wrap gap-1">
-                      {ev.participants.map(pid => (
-                        <Badge key={pid} variant="secondary" className="text-[10px]">{getParticipantName(pid)}</Badge>
-                      ))}
-                    </div>
+                  {ev.type === 'ferias' ? (
+                    <>
+                      {/* Vacation card - enhanced layout */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-700 font-semibold text-sm">
+                            {getRadiologistInitial(ev.participants[0])}
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                              {getParticipantName(ev.participants[0])}
+                            </span>
+                            <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
+                              <Sun className="h-3 w-3" />
+                              Férias
+                            </div>
+                          </div>
+                        </div>
+                        {role === 'admin' && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditFeriasDialog(ev)}>
+                                <Pencil className="h-4 w-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteEvent(ev)}>
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                      <div className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded px-2 py-1 inline-block">
+                        📅 {format(parseISO(ev.startDate), 'dd/MM')} a {format(parseISO(ev.endDate), 'dd/MM/yyyy')}
+                      </div>
+                      {ev.description && <p className="text-xs text-muted-foreground">{ev.description}</p>}
+                    </>
+                  ) : (
+                    <>
+                      {/* Meeting card */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{ev.title}</span>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-blue-600 border-blue-500/50">
+                            <Users className="h-3 w-3 mr-1" />
+                            Reunião
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditDialog(ev)}>
+                                <Pencil className="h-4 w-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteEvent(ev)}>
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                      {ev.description && <p className="text-xs text-muted-foreground">{ev.description}</p>}
+                      <div className="text-xs text-muted-foreground">
+                        {ev.time
+                          ? `${format(parseISO(ev.startDate), 'dd/MM/yyyy')} às ${ev.time}${ev.duration ? ` (${formatDuration(ev.duration)})` : ''}`
+                          : format(parseISO(ev.startDate), 'dd/MM/yyyy')
+                        }
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {ev.participants.map(pid => (
+                          <Badge key={pid} variant="secondary" className="text-[10px]">{getParticipantName(pid)}</Badge>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               ))
