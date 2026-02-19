@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { clients, examTypes, calcValues, Exam, ExamCategory } from '@/data/mockData';
+import { examTypes, calcValues, Exam, ExamCategory } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,8 @@ function generateId(): string {
 }
 
 export default function NovoExame() {
-  const { addExam } = useApp();
+  const { addExam, clients } = useApp();
+  const simClient = clients.find(c => c.id === SIMULATED_CLIENT_ID);
   const [form, setForm] = useState({
     patientName: '',
     patientBirthDate: '',
@@ -58,7 +59,7 @@ export default function NovoExame() {
       patientBirthDate: form.patientBirthDate,
       examTypeId: form.examTypeId,
       examCategory: form.examCategory as ExamCategory,
-      software: 'Axel', // default, will be assigned later
+      software: simClient?.software ?? 'Axel',
       radiologistId: null,
       status: 'Disponível',
       clientValue,
@@ -107,7 +108,7 @@ export default function NovoExame() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold">Novo Exame</h1>
-        <p className="text-sm text-muted-foreground">Solicitando como: {clients.find(c => c.id === SIMULATED_CLIENT_ID)?.name}</p>
+        <p className="text-sm text-muted-foreground">Solicitando como: {simClient?.name}</p>
       </div>
 
       <Card>
