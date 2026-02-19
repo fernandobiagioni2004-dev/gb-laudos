@@ -12,8 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Sun, Users } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { CalendarIcon, Plus, Sun, Users, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const participantOptions = [
@@ -21,21 +22,38 @@ const participantOptions = [
   ...radiologists.map(r => ({ id: r.id, name: r.name })),
 ];
 
+const durationOptions = [
+  { value: 15, label: '15min' },
+  { value: 30, label: '30min' },
+  { value: 45, label: '45min' },
+  { value: 60, label: '1h' },
+  { value: 90, label: '1h30' },
+  { value: 120, label: '2h' },
+];
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
+}
+
 export default function Calendario() {
-  const { role, calendarEvents, addCalendarEvent } = useApp();
+  const { role, calendarEvents, addCalendarEvent, updateCalendarEvent, removeCalendarEvent } = useApp();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   // Form state
   const [newTitle, setNewTitle] = useState('');
-  const [newStartDate, setNewStartDate] = useState('');
-  const [newEndDate, setNewEndDate] = useState('');
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('');
+  const [newDuration, setNewDuration] = useState<number>(60);
   const [newParticipants, setNewParticipants] = useState<string[]>([]);
   const [newDescription, setNewDescription] = useState('');
 
   const currentUserId = role === 'admin' ? 'admin' : 'r1';
 
-  // Filter events by visibility
   const visibleEvents = useMemo(() => {
     return calendarEvents.filter(ev => {
       if (ev.type === 'ferias') return true;
@@ -44,7 +62,6 @@ export default function Calendario() {
     });
   }, [calendarEvents, role, currentUserId]);
 
-  // Days that have events (for modifiers)
   const eventDays = useMemo(() => {
     const days: { ferias: Date[]; reuniao: Date[] } = { ferias: [], reuniao: [] };
     visibleEvents.forEach(ev => {
@@ -57,7 +74,6 @@ export default function Calendario() {
     return days;
   }, [visibleEvents]);
 
-  // Events for the selected date
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return [];
     return visibleEvents.filter(ev => {
@@ -71,25 +87,57 @@ export default function Calendario() {
     setNewParticipants(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
-  const handleCreateEvent = () => {
-    if (!newTitle || !newStartDate || !newEndDate || newParticipants.length === 0) return;
-    const event: CalendarEvent = {
-      id: `ev_${Date.now()}`,
-      title: newTitle,
-      type: 'reuniao',
-      startDate: newStartDate,
-      endDate: newEndDate,
-      participants: newParticipants,
-      description: newDescription,
-      createdBy: currentUserId,
-    };
-    addCalendarEvent(event);
-    setDialogOpen(false);
+  const resetForm = () => {
     setNewTitle('');
-    setNewStartDate('');
-    setNewEndDate('');
+    setNewDate('');
+    setNewTime('');
+    setNewDuration(60);
     setNewParticipants([]);
     setNewDescription('');
+    setEditingEvent(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (ev: CalendarEvent) => {
+    setEditingEvent(ev);
+    setNewTitle(ev.title);
+    setNewDate(ev.startDate);
+    setNewTime(ev.time || '');
+    setNewDuration(ev.duration || 60);
+    setNewParticipants([...ev.participants]);
+    setNewDescription(ev.description);
+    setDialogOpen(true);
+  };
+
+  const handleSaveEvent = () => {
+    if (!newTitle || !newDate || !newTime || newParticipants.length === 0) return;
+    const event: CalendarEvent = {
+      id: editingEvent ? editingEvent.id : `ev_${Date.now()}`,
+      title: newTitle,
+      type: 'reuniao',
+      startDate: newDate,
+      endDate: newDate,
+      participants: newParticipants,
+      description: newDescription,
+      createdBy: editingEvent ? editingEvent.createdBy : currentUserId,
+      time: newTime,
+      duration: newDuration,
+    };
+    if (editingEvent) {
+      updateCalendarEvent(event);
+    } else {
+      addCalendarEvent(event);
+    }
+    setDialogOpen(false);
+    resetForm();
+  };
+
+  const handleDeleteEvent = (ev: CalendarEvent) => {
+    removeCalendarEvent(ev.id);
   };
 
   const getParticipantName = (id: string) => {
@@ -104,59 +152,72 @@ export default function Calendario() {
           <h1 className="text-2xl font-bold text-foreground">Calendário</h1>
           <p className="text-muted-foreground text-sm">Férias, reuniões e eventos da equipe</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Nova Reunião</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Nova Reunião</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-1">
-                <Label>Título</Label>
-                <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Ex: Reunião de alinhamento" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Data início</Label>
-                  <Input type="date" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Data fim</Label>
-                  <Input type="date" value={newEndDate} onChange={e => setNewEndDate(e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Participantes</Label>
-                <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
-                  {participantOptions.map(p => (
-                    <div key={p.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`part-${p.id}`}
-                        checked={newParticipants.includes(p.id)}
-                        onCheckedChange={() => toggleParticipant(p.id)}
-                      />
-                      <label htmlFor={`part-${p.id}`} className="text-sm cursor-pointer">{p.name}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Descrição</Label>
-                <Textarea value={newDescription} onChange={e => setNewDescription(e.target.value)} placeholder="Detalhes da reunião..." rows={3} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleCreateEvent} disabled={!newTitle || !newStartDate || !newEndDate || newParticipants.length === 0}>Criar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreateDialog}><Plus className="h-4 w-4 mr-2" /> Nova Reunião</Button>
       </div>
 
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? 'Editar Reunião' : 'Nova Reunião'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label>Título</Label>
+              <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Ex: Reunião de alinhamento" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label>Data</Label>
+                <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Horário</Label>
+                <Input type="time" value={newTime} onChange={e => setNewTime(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Duração</Label>
+                <Select value={String(newDuration)} onValueChange={v => setNewDuration(Number(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {durationOptions.map(d => (
+                      <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Participantes</Label>
+              <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+                {participantOptions.map(p => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`part-${p.id}`}
+                      checked={newParticipants.includes(p.id)}
+                      onCheckedChange={() => toggleParticipant(p.id)}
+                    />
+                    <label htmlFor={`part-${p.id}`} className="text-sm cursor-pointer">{p.name}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Descrição</Label>
+              <Textarea value={newDescription} onChange={e => setNewDescription(e.target.value)} placeholder="Detalhes da reunião..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleSaveEvent} disabled={!newTitle || !newDate || !newTime || newParticipants.length === 0}>
+              {editingEvent ? 'Salvar' : 'Criar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar */}
         <Card className="lg:col-span-2">
           <CardContent className="p-4">
             <Calendar
@@ -214,7 +275,6 @@ export default function Calendario() {
           </CardContent>
         </Card>
 
-        {/* Day details panel */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
@@ -235,16 +295,40 @@ export default function Calendario() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium">{ev.title}</span>
-                    <Badge variant="outline" className={ev.type === 'ferias' ? 'text-amber-600 border-amber-500/50' : 'text-blue-600 border-blue-500/50'}>
-                      {ev.type === 'ferias' ? <Sun className="h-3 w-3 mr-1" /> : <Users className="h-3 w-3 mr-1" />}
-                      {ev.type === 'ferias' ? 'Férias' : 'Reunião'}
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className={ev.type === 'ferias' ? 'text-amber-600 border-amber-500/50' : 'text-blue-600 border-blue-500/50'}>
+                        {ev.type === 'ferias' ? <Sun className="h-3 w-3 mr-1" /> : <Users className="h-3 w-3 mr-1" />}
+                        {ev.type === 'ferias' ? 'Férias' : 'Reunião'}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {ev.type === 'reuniao' && (
+                            <DropdownMenuItem onClick={() => openEditDialog(ev)}>
+                              <Pencil className="h-4 w-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                          )}
+                          {(role === 'admin' || ev.type === 'reuniao') && (
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteEvent(ev)}>
+                              <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   {ev.description && <p className="text-xs text-muted-foreground">{ev.description}</p>}
                   <div className="text-xs text-muted-foreground">
-                    {ev.startDate === ev.endDate
-                      ? format(parseISO(ev.startDate), 'dd/MM/yyyy')
-                      : `${format(parseISO(ev.startDate), 'dd/MM')} - ${format(parseISO(ev.endDate), 'dd/MM/yyyy')}`}
+                    {ev.type === 'reuniao' && ev.time
+                      ? `${format(parseISO(ev.startDate), 'dd/MM/yyyy')} às ${ev.time}${ev.duration ? ` (${formatDuration(ev.duration)})` : ''}`
+                      : ev.startDate === ev.endDate
+                        ? format(parseISO(ev.startDate), 'dd/MM/yyyy')
+                        : `${format(parseISO(ev.startDate), 'dd/MM')} - ${format(parseISO(ev.endDate), 'dd/MM/yyyy')}`
+                    }
                   </div>
                   {ev.type === 'reuniao' && (
                     <div className="flex flex-wrap gap-1">
