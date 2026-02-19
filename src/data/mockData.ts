@@ -12,9 +12,12 @@ export interface Client {
   status: 'Ativo' | 'Inativo';
 }
 
+export type ExamCategory = 'radiografia' | 'tomografia';
+
 export interface ExamType {
   id: string;
   name: string;
+  category: ExamCategory;
 }
 
 export interface Radiologist {
@@ -44,6 +47,7 @@ export interface Exam {
   patientName: string;
   patientBirthDate: string;
   examTypeId: string;
+  examCategory: ExamCategory;
   software: Software;
   radiologistId: string | null;
   status: ExamStatus;
@@ -54,6 +58,8 @@ export interface Exam {
   createdAt: string;
   statusHistory: StatusHistoryEntry[];
   files: string[];
+  urgent?: boolean;
+  urgentTime?: string;
 }
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
@@ -65,9 +71,15 @@ export const clients: Client[] = [
 
 // ─── Exam Types ───────────────────────────────────────────────────────────────
 export const examTypes: ExamType[] = [
-  { id: 'et1', name: 'Panorâmica' },
-  { id: 'et2', name: 'Tomografia' },
-  { id: 'et3', name: 'Periapical' },
+  // Radiografia
+  { id: 'et1', name: 'Panorâmica', category: 'radiografia' },
+  { id: 'et3', name: 'Periapical', category: 'radiografia' },
+  { id: 'et4', name: 'Telerradiografia', category: 'radiografia' },
+  { id: 'et5', name: 'Interproximal (Bite-Wing)', category: 'radiografia' },
+  // Tomografia
+  { id: 'et2', name: 'Tomografia Computadorizada (TCFC)', category: 'tomografia' },
+  { id: 'et6', name: 'Tomografia de ATM', category: 'tomografia' },
+  { id: 'et7', name: 'Tomografia de Seios da Face', category: 'tomografia' },
 ];
 
 // ─── Radiologists ─────────────────────────────────────────────────────────────
@@ -129,8 +141,9 @@ function makeExam(
   if (status === 'Cancelado') {
     history.push({ status: 'Cancelado', date: createdAt, by: 'Admin' });
   }
+  const examCategory = examTypes.find(t => t.id === examTypeId)?.category ?? 'radiografia';
   return {
-    id, clientId, patientName, patientBirthDate, examTypeId, software, radiologistId, status,
+    id, clientId, patientName, patientBirthDate, examTypeId, examCategory, software, radiologistId, status,
     clientValue, radiologistValue, margin, observations, createdAt,
     statusHistory: history,
     files: status === 'Finalizado' ? ['laudo_' + id + '.pdf'] : [],
