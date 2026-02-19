@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Role, Exam, initialExams, calcValues, CalendarEvent, initialCalendarEvents } from '@/data/mockData';
+import { Role, Exam, Client, initialExams, calcValues, CalendarEvent, initialCalendarEvents, clients as initialClients } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
 interface AppContextValue {
@@ -16,6 +16,10 @@ interface AppContextValue {
   addCalendarEvent: (event: CalendarEvent) => void;
   updateCalendarEvent: (event: CalendarEvent) => void;
   removeCalendarEvent: (eventId: string) => void;
+  clients: Client[];
+  addClient: (client: Client) => void;
+  updateClient: (client: Client) => void;
+  removeClient: (clientId: string) => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -25,6 +29,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [switching, setSwitching] = useState(false);
   const [exams, setExams] = useState<Exam[]>(initialExams);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const [clients, setClients] = useState<Client[]>(initialClients);
 
   const setRole = useCallback((newRole: Role) => {
     setSwitching(true);
@@ -118,8 +123,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: 'Evento removido', description: 'O evento foi removido do calendário.' });
   }, []);
 
+  const addClient = useCallback((client: Client) => {
+    setClients(prev => [...prev, client]);
+    toast({ title: '✅ Cliente criado!', description: `"${client.name}" foi adicionado.` });
+  }, []);
+
+  const updateClient = useCallback((client: Client) => {
+    setClients(prev => prev.map(c => c.id === client.id ? client : c));
+    toast({ title: '✏️ Cliente atualizado!', description: `"${client.name}" foi atualizado.` });
+  }, []);
+
+  const removeClient = useCallback((clientId: string) => {
+    setClients(prev => {
+      const client = prev.find(c => c.id === clientId);
+      toast({ title: 'Cliente removido', description: `"${client?.name}" foi removido.`, variant: 'destructive' });
+      return prev.filter(c => c.id !== clientId);
+    });
+  }, []);
+
   return (
-    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam, calendarEvents, addCalendarEvent, updateCalendarEvent, removeCalendarEvent }}>
+    <AppContext.Provider value={{ role, setRole, switching, exams, addExam, updateExamStatus, assumeExam, finalizeExam, cancelExam, calendarEvents, addCalendarEvent, updateCalendarEvent, removeCalendarEvent, clients, addClient, updateClient, removeClient }}>
       {children}
     </AppContext.Provider>
   );
