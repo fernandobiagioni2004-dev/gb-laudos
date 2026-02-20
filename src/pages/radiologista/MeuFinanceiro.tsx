@@ -7,6 +7,11 @@ import { Wallet, TrendingUp, Clock } from 'lucide-react';
 
 const SIMULATED_RADIOLOGIST = radiologists[0];
 
+function formatDateBR(dateStr: string) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 }
@@ -93,7 +98,7 @@ export default function MeuFinanceiro() {
                       <td className="py-3 px-4 font-mono text-xs text-primary">{e.id}</td>
                       <td className="py-3 px-4">{clients.find(c => c.id === e.clientId)?.name}</td>
                       <td className="py-3 px-4 text-muted-foreground">{examTypes.find(t => t.id === e.examTypeId)?.name}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{e.createdAt}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{formatDateBR(e.createdAt)}</td>
                       <td className="py-3 px-4 text-emerald-400 font-medium">{fmt(e.radiologistValue)}</td>
                       <td className="py-3 px-4"><StatusBadge status={e.status} /></td>
                     </tr>
