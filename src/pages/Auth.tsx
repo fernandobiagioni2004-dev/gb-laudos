@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import gbLaudosLogo from '@/assets/gb-laudos-logo.png';
+import gbLaudosLoginLogo from '@/assets/gb-laudos-login-logo.png';
 import loginBg from '@/assets/login-bg.jpeg';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
@@ -78,7 +78,7 @@ export default function Auth() {
       <Card className="relative z-10 w-full max-w-sm">
         <CardHeader className="text-center space-y-3">
           <div className="flex justify-center">
-            <img src={gbLaudosLogo} alt="GB Laudos" className="h-16 w-auto object-contain" />
+            <img src={gbLaudosLoginLogo} alt="GB Laudos" className="h-16 w-auto object-contain" />
           </div>
           <CardTitle className="text-xl">{title}</CardTitle>
         </CardHeader>
