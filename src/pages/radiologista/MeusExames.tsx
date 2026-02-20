@@ -178,6 +178,14 @@ export default function MeusExamesRadiologista() {
                     <p className="font-medium">{formatDate(detailExam.patientBirthDate)}</p>
                   </div>
                   <div>
+                    <p className="text-muted-foreground text-xs">Dentista Solicitante</p>
+                    <p className="font-medium">{detailExam.dentistName || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Finalidade</p>
+                    <p className="font-medium">{detailExam.purpose || 'Não informada'}</p>
+                  </div>
+                  <div>
                     <p className="text-muted-foreground text-xs">Cliente</p>
                     <p className="font-medium">{client?.name}</p>
                   </div>
