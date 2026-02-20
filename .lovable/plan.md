@@ -1,43 +1,47 @@
 
-## Exibir finalidade, dentista e arquivo corretamente nos Meus Exames (Externo)
 
-### Problema identificado
+## Adicionar nome do dentista e finalidade no dialog de detalhes - Meus Exames (Radiologista)
 
-O formulario "Novo Exame" coleta os campos `dentistName` (nome do dentista), `purpose` (finalidade) e `examDate` (data do exame), mas esses dados nao sao salvos no objeto do exame. Alem disso, o nome do arquivo selecionado tambem nao e armazenado. Por fim, a tela de Meus Exames do usuario externo nao possui um dialog de detalhes ao clicar no card.
+### Resumo
 
-### Alteracoes necessarias
+O dialog de detalhes do exame na tela do radiologista ja exibe paciente, cliente, tipo, software, etc., mas faltam os campos **Dentista Solicitante** e **Finalidade do Exame**. Esses campos ja existem na interface `Exam` (adicionados anteriormente), so precisam ser exibidos.
 
-#### 1. Adicionar campos na interface `Exam` (`src/data/mockData.ts`)
+### Alteracao em `src/pages/radiologista/MeusExames.tsx`
 
-- Adicionar `dentistName?: string` para o nome do dentista solicitante
-- Adicionar `purpose?: string` para a finalidade do exame
-- Adicionar `examDate?: string` para a data do exame
-- Adicionar valores simulados nos exames mock existentes para que tenham dados visiveis
+#### 1. Adicionar campos no dialog de detalhes (linhas 170-196)
 
-#### 2. Salvar os novos campos ao criar exame (`src/pages/externo/NovoExame.tsx`)
+Inserir dois novos campos no grid de informacoes, logo apos "Paciente" e "Data Nasc.":
 
-- No `handleSubmit`, incluir `dentistName`, `purpose` e `examDate` no objeto `newExam`
-- Salvar `selectedFile?.name` no campo `uploadedFile` para que o nome do arquivo apareca
+- **Dentista Solicitante** (`detailExam.dentistName`) - exibe o nome do dentista ou "Nao informado"
+- **Finalidade** (`detailExam.purpose`) - exibe a finalidade do exame ou "Nao informada"
 
-#### 3. Adicionar dialog de detalhes nos Meus Exames externo (`src/pages/externo/MeusExames.tsx`)
+#### 2. Adicionar nome do paciente nos cards (ja presente)
 
-- Tornar o card inteiro clicavel (igual ao que foi feito no radiologista)
-- Adicionar estado `detailId` para controlar qual exame esta aberto
-- Criar um Dialog com as informacoes do exame:
-  - Paciente, Data de Nascimento
-  - Dentista Solicitante (novo campo)
-  - Finalidade do Exame (novo campo)
-  - Tipo de exame, Categoria, Software
-  - Data de criacao (formato brasileiro)
-  - Status atual
-  - Urgencia (se aplicavel)
-  - Observacoes
-  - Historico de status
-  - Arquivo enviado (com botao de download, se existir)
-  - Laudo disponivel (botao de download para exames finalizados)
-- O botao "Baixar Laudo" existente no card precisa de `e.stopPropagation()` para nao abrir o dialog ao ser clicado
+O nome do paciente ja aparece nos cards via `PatientNameLink`. Nenhuma alteracao necessaria nesse ponto.
 
-#### 4. Dados mock para exames existentes
+### Posicionamento no dialog
 
-- Adicionar `dentistName` e `purpose` na funcao `makeExam` com valores padrao opcionais
-- Adicionar valores de exemplo nos exames iniciais do cliente `c1` (OralMax) para que aparecam dados no dialog
+```text
++------------------------------------------+
+| Detalhes do Exame                  [X]   |
+| EX001 - Joao Silva                      |
+|                                          |
+| Paciente         | Data Nasc.            |
+| Joao Silva       | 01/01/1990            |
+| Dentista         | Finalidade            |  <-- NOVO
+| Dr. Carlos       | Implante              |  <-- NOVO
+| Cliente          | Tipo                  |
+| OralMax          | Panoramica (2D)       |
+| Software         | Data Criacao          |
+| Axel             | 01/02/2026            |
+|                                          |
+| Observacoes                              |
+| ...                                      |
++------------------------------------------+
+```
+
+### Detalhes tecnicos
+
+- Apenas uma alteracao no arquivo `src/pages/radiologista/MeusExames.tsx`
+- Campos opcionais com fallback "Nao informado"
+- Nenhuma dependencia nova
