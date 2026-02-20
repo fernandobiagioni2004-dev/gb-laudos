@@ -24,9 +24,9 @@ const roleLabels: Record<Role, string> = {
 };
 
 const roleColors: Record<Role, string> = {
-  admin: 'text-blue-600',
-  radiologista: 'text-emerald-600',
-  externo: 'text-amber-600',
+  admin: 'text-blue-200',
+  radiologista: 'text-emerald-200',
+  externo: 'text-amber-200',
 };
 
 const roleAvatars: Record<Role, string> = {
@@ -111,7 +111,7 @@ export function AppSidebar() {
             )}>
               <div className={cn(
                 'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-                'bg-sidebar-accent',
+                'bg-white/15',
                 roleColors[role],
               )}>
                 {roleAvatars[role]}
@@ -120,7 +120,7 @@ export function AppSidebar() {
                 <>
                   <div className="flex-1 text-left min-w-0">
                     <p className={cn('text-xs font-medium truncate', roleColors[role])}>{roleLabels[role]}</p>
-                    <p className="text-[10px] text-muted-foreground">Trocar perfil</p>
+                    <p className="text-[10px] text-white/60">Trocar perfil</p>
                   </div>
                   <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                 </>
