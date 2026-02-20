@@ -1,38 +1,39 @@
 
 
-## Permitir multiplos softwares por cliente + badges estilizados
+## Adicionar campos "Nome do Dentista Solicitante" e "Data do Exame" em Dados do Paciente
 
-### Resumo
+### Arquivo: `src/pages/externo/NovoExame.tsx`
 
-Alterar o campo `software` do cliente de um valor unico (`Software`) para um array (`Software[]`), igual ao que ja existe para radiologistas. Tambem aplicar o mesmo estilo visual de badges com icone de monitor usado na aba Radiologistas.
+**1. Atualizar o estado do formulario (linha 24-34)**
+- Adicionar `dentistName: ''` e `examDate: ''` ao estado inicial do formulario
 
-### Alteracoes por arquivo
+**2. Adicionar os dois campos no card "Dados do Paciente" (linhas 118-137)**
+- Abaixo do campo "Data de Nascimento", adicionar:
+  - **Nome do Dentista Solicitante**: campo `Input` de texto com placeholder "Nome do dentista"
+  - **Data do Exame**: campo `Input` tipo `date`
+- Layout: os dois novos campos ficam lado a lado em grid de 2 colunas
 
-#### 1. `src/data/mockData.ts`
+**3. Atualizar o reset em `handleNew` (linha 82)**
+- Incluir `dentistName: ''` e `examDate: ''` no reset do formulario
 
-- Mudar `Client.software` de `Software` para `Software[]`
-- Atualizar dados mock: ex. `c1: ['Axel']`, `c2: ['Axel', 'Morita']`, `c3: ['Morita']`
+**4. Validacao (linha 44)**
+- Tornar ambos os campos obrigatorios na validacao do `handleSubmit`
 
-#### 2. `src/pages/admin/Clientes.tsx`
+### Resultado visual do card "Dados do Paciente"
 
-**Badges no card** (substituir o `Badge` simples):
-- Usar o mesmo estilo da aba Radiologistas: badges coloridos com icone `Monitor`
-  - Axel: `bg-violet-500/15 text-violet-400`
-  - Morita: `bg-sky-500/15 text-sky-400`
-- Renderizar um badge para cada software do array
+```text
++--------------------------------------+
+| Dados do Paciente                    |
+|                                      |
+| Nome do Paciente *        (col-span) |
+| Data de Nasc. *  | Dentista Solic. * |
+| Data do Exame *  |                   |
++--------------------------------------+
+```
 
-**Formulario de criar/editar**:
-- Substituir o `Select` unico de software por checkboxes ou botoes toggle para selecionar multiplos softwares
-- O estado `form.software` passa de `string` para `Software[]`
-- Validacao: pelo menos um software deve estar selecionado
+### Detalhes tecnicos
 
-**Dialog de detalhes**:
-- Exibir os softwares separados por virgula ou como badges
+- Nao requer novas dependencias
+- Os campos serao adicionados apenas ao estado local do formulario (nao afetam a interface `Exam` por enquanto)
+- O campo "Data do Exame" usara `<Input type="date">` para manter consistencia com os outros campos de data do formulario
 
-#### 3. `src/pages/externo/NovoExame.tsx`
-
-- Ajustar a referencia a `simClient?.software` -- como agora e um array, usar o primeiro software do array como padrao (`simClient?.software[0]`) ou permitir selecao caso o cliente tenha mais de um
-
-#### 4. `src/context/AppContext.tsx`
-
-- Nenhuma alteracao necessaria na logica (ja aceita `Client` generico), mas a tipagem se atualiza automaticamente com a mudanca na interface
