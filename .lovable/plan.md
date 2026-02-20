@@ -1,57 +1,86 @@
 
 
-## Adicionar filtro de mes nas telas do administrador
+## Mudar tema para fundo cinza claro (Light Mode)
 
 ### Resumo
 
-Adicionar um seletor de mes/ano (igual ao do Meu Financeiro do radiologista) nas telas **Dashboard**, **Clientes** e **Radiologistas** do perfil administrador, para visualizar valores financeiros filtrados por mes.
+Trocar o tema da aplicacao de dark mode para light mode com fundo cinza claro, inspirado no print de referencia. A sidebar permanecera escura (como no exemplo, que usa sidebar roxa/escura), criando contraste com o conteudo principal claro.
 
 ### Alteracoes
 
-#### 1. Dashboard (`src/pages/admin/Dashboard.tsx`)
+#### 1. Variaveis CSS (`src/index.css`)
 
-- Substituir o filtro de periodo atual (Hoje / 7d / 30d / Total) por um **seletor de mes** com setas ChevronLeft/ChevronRight
-- Todos os KPIs, graficos e tabela de producao passam a filtrar pelo mes selecionado
-- O grafico mostrara os dias do mes selecionado (em vez dos ultimos 14 dias)
-- Manter a opcao "Total" como alternativa ao lado do seletor de mes
+Atualizar todas as variaveis de cor para valores light mode:
 
-#### 2. Clientes (`src/pages/admin/Clientes.tsx`)
+- **background**: cinza claro (~`220 14% 96%` - equivalente a `#f1f5f9`)
+- **foreground**: texto escuro (~`222 47% 11%`)
+- **card**: branco (`0 0% 100%`)
+- **card-foreground**: texto escuro
+- **popover**: branco
+- **primary**: manter azul (`217 91% 60%`) com foreground branco
+- **secondary**: cinza medio claro
+- **muted**: cinza suave
+- **muted-foreground**: cinza escuro para texto secundario
+- **border/input**: cinza claro
+- **Sidebar**: manter escura (fundo escuro, texto claro) para contraste, similar ao exemplo
 
-- Adicionar seletor de mes entre o titulo e os cards
-- Os valores nos cards (Exames, Faturado, Margem) serao filtrados pelo mes selecionado
-- No dialog de detalhes, os resumos financeiros e historico de exames tambem serao filtrados pelo mes
+Remover `color-scheme: dark` e ajustar scrollbar para cores claras.
 
-#### 3. Radiologistas (`src/pages/admin/Radiologistas.tsx`)
+#### 2. Cores de status e badges nos componentes
 
-- Adicionar seletor de mes entre o titulo e os cards
-- Os valores nos cards (Finalizados, Em Analise, A Receber) serao filtrados pelo mes selecionado
-- No dialog de detalhes, os resumos e lista de exames tambem serao filtrados pelo mes
+Ajustar as cores hardcoded nos seguintes arquivos para melhor contraste no fundo claro:
+
+- **`src/components/StatusBadge.tsx`**: trocar `text-emerald-400` para `text-emerald-600`, `text-amber-400` para `text-amber-600`, etc.
+- **`src/components/DeadlineBadge.tsx`**: mesma troca de tons 400 para 600
+- **`src/components/AppSidebar.tsx`**: roleColors trocar de 400 para 600 (pois o dropdown abre fora da sidebar)
+
+#### 3. Paginas com cores hardcoded
+
+Atualizar tons de cores em todas as paginas que usam `text-*-400` para `text-*-600` (melhor legibilidade em fundo claro):
+
+- `src/pages/admin/Dashboard.tsx`
+- `src/pages/admin/Exames.tsx`
+- `src/pages/admin/Clientes.tsx`
+- `src/pages/admin/Radiologistas.tsx`
+- `src/pages/radiologista/MeuFinanceiro.tsx`
+- `src/pages/radiologista/ExamesDisponiveis.tsx`
+- `src/pages/radiologista/MeusExames.tsx`
+- `src/pages/externo/MeusExames.tsx`
+- `src/pages/externo/NovoExame.tsx`
 
 ### Detalhes tecnicos
 
-Padrao reutilizado do `MeuFinanceiro.tsx`:
+Novas variaveis CSS (valores aproximados):
 
-```typescript
-const [selectedMonth, setSelectedMonth] = useState(() => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-});
+```css
+:root {
+  --background: 220 14% 96%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 13% 91%;
+  --secondary-foreground: 222 47% 20%;
+  --muted: 220 14% 92%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 217 91% 60%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 13% 87%;
+  --input: 220 13% 87%;
+  --ring: 217 91% 60%;
 
-function changeMonth(delta: number) {
-  const [y, m] = selectedMonth.split('-').map(Number);
-  const d = new Date(y, m - 1 + delta, 1);
-  setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  /* Sidebar permanece escura */
+  --sidebar-background: 222 22% 7%;
+  --sidebar-foreground: 210 15% 75%;
+  /* ... demais sidebar vars permanecem iguais */
 }
-
-const [y, m] = selectedMonth.split('-');
-const monthLabel = new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 ```
 
-Filtro aplicado nos arrays de exames com `e.createdAt.startsWith(selectedMonth)`.
+Padrao de substituicao nos componentes: `text-emerald-400` vira `text-emerald-600`, `text-amber-400` vira `text-amber-600`, `text-blue-400` vira `text-blue-600`, `text-red-400` vira `text-red-600`. Backgrounds semi-transparentes (`bg-*-500/15`) podem ser mantidos ou ajustados para `bg-*-500/10`.
 
-**Dashboard**: o filtro de periodo existente (hoje/7d/30d/total) sera mantido e o seletor de mes sera adicionado ao lado, funcionando como um filtro complementar. O periodo filtra dentro do mes selecionado.
-
-**Clientes e Radiologistas**: seletor de mes adicionado abaixo do titulo, com o mesmo visual compacto (botoes ghost + label capitalizado centralizado).
-
-3 arquivos alterados no total.
-
+Total estimado: ~12 arquivos alterados.
