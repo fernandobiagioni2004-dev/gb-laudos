@@ -87,7 +87,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
           <div className="flex items-center gap-2">
-            <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
+            <img src={gbLaudosLogo} alt="GB Laudos" className="h-10 w-10 rounded-xl object-contain mix-blend-screen" />
             <div>
               <p className="text-sm font-semibold text-sidebar-accent-foreground">GB Laudos</p>
               <p className="text-xs text-sidebar-foreground">Laudos Odontológicos</p>
@@ -95,7 +95,7 @@ export function AppSidebar() {
           </div>
         ) : (
           <div className="flex justify-center">
-            <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
+            <img src={gbLaudosLogo} alt="GB Laudos" className="h-9 w-9 rounded-xl object-contain mix-blend-screen" />
           </div>
         )}
       </SidebarHeader>
@@ -166,14 +166,14 @@ export function AppSidebar() {
                           className={cn(
                             'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                             isActive
-                              ? 'bg-purple-500/15 text-purple-300 font-medium'
+                              ? 'bg-sidebar-primary/15 text-sidebar-primary-foreground font-medium'
                               : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                           )}
                         >
-                          <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive && 'text-purple-300')} />
+                          <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive && 'text-sidebar-primary-foreground')} />
                           {!collapsed && <span>{item.title}</span>}
                           {isActive && !collapsed && (
-                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-purple-400" />
+                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
                           )}
                         </button>
                       </SidebarMenuButton>
