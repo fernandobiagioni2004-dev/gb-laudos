@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { radiologists, clients, examTypes } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Wallet, TrendingUp, Clock } from 'lucide-react';
+import { Wallet, TrendingUp, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SIMULATED_RADIOLOGIST = radiologists[0];
 
@@ -19,13 +20,32 @@ function fmt(n: number) {
 export default function MeuFinanceiro() {
   const { exams } = useApp();
 
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  function changeMonth(delta: number) {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  const [y, m] = selectedMonth.split('-');
+  const monthLabel = new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
   const myExams = useMemo(() =>
     exams.filter(e => e.radiologistId === SIMULATED_RADIOLOGIST.id && e.status !== 'Cancelado'),
     [exams]
   );
 
-  const finalized = myExams.filter(e => e.status === 'Finalizado');
-  const inProgress = myExams.filter(e => e.status === 'Em análise');
+  const monthExams = useMemo(() =>
+    myExams.filter(e => e.createdAt.startsWith(selectedMonth)),
+    [myExams, selectedMonth]
+  );
+
+  const finalized = monthExams.filter(e => e.status === 'Finalizado');
+  const inProgress = monthExams.filter(e => e.status === 'Em análise');
   const totalReceived = finalized.reduce((a, e) => a + e.radiologistValue, 0);
   const totalPending = inProgress.reduce((a, e) => a + e.radiologistValue, 0);
 
@@ -34,6 +54,16 @@ export default function MeuFinanceiro() {
       <div>
         <h1 className="text-2xl font-bold">Meu Financeiro</h1>
         <p className="text-sm text-muted-foreground">{SIMULATED_RADIOLOGIST.name}</p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => changeMonth(-1)}>
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <span className="text-sm font-medium capitalize min-w-[160px] text-center">{monthLabel}</span>
+        <Button variant="ghost" size="icon" onClick={() => changeMonth(1)}>
+          <ChevronRight className="h-5 w-5" />
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -80,7 +110,7 @@ export default function MeuFinanceiro() {
           {finalized.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
               <Wallet className="h-8 w-8 opacity-20" />
-              <p className="text-sm">Nenhum exame finalizado</p>
+              <p className="text-sm">Nenhum exame finalizado neste mês</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
