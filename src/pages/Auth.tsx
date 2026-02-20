@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import gbLaudosLogo from '@/assets/gb-laudos-logo.png';
+import loginBg from '@/assets/login-bg.jpeg';
 
 export default function Auth() {
   const { session, loading } = useAuth();
@@ -54,8 +55,12 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
+      style={{ backgroundImage: `url(${loginBg})` }}
+    >
+      <div className="absolute inset-0 bg-black/40" />
+      <Card className="relative z-10 w-full max-w-sm">
         <CardHeader className="text-center space-y-3">
           <div className="flex justify-center">
             <img src={gbLaudosLogo} alt="GB Laudos" className="h-14 w-14 rounded-xl object-contain" />
