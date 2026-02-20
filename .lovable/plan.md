@@ -1,30 +1,38 @@
 
-# Editar Usuarios - Pagina de Gestao
 
-## Objetivo
-Adicionar funcionalidade completa de edicao na pagina de Usuarios, permitindo ao administrador editar nome, papel, cliente vinculado e softwares de cada usuario atraves de um modal de edicao.
+# Renomear Softwares: Axel -> iDixel, Morita -> OnDemand
 
 ## O que muda para voce
-- Cada usuario tera um botao "Editar" ao lado
-- Ao clicar, abre um formulario com os campos: **Nome**, **Papel**, **Cliente vinculado** (quando cliente), e **Softwares** (quando radiologista)
-- Ao salvar, as alteracoes sao aplicadas imediatamente
+Os nomes dos softwares em todo o sistema serao atualizados:
+- **Axel** passa a se chamar **iDixel**
+- **Morita** passa a se chamar **OnDemand**
+
+Isso afeta todas as telas: cadastro de clientes, exames disponiveis, gestao de usuarios, radiologistas e listagem de exames.
 
 ## Detalhes Tecnicos
 
-### 1. Atualizar o hook `useUpdateUserRole` (src/hooks/useAppUsers.ts)
-- Renomear para `useUpdateUser` e aceitar tambem o campo `nome`
-- Incluir `nome` no objeto de update enviado ao banco
+### 1. Migracao no banco de dados
+Renomear os valores do enum `exam_software`:
+- `Axel` -> `iDixel`
+- `Morita` -> `OnDemand`
 
-### 2. Refatorar a pagina `Usuarios.tsx` (src/pages/admin/Usuarios.tsx)
-- Adicionar um Dialog (modal) de edicao com os campos:
-  - **Nome** (input de texto)
-  - **Papel** (select com as opcoes existentes)
-  - **Cliente vinculado** (select, visivel apenas quando papel = cliente)
-  - **Softwares** (checkboxes para "Morita" e "Axel", visivel apenas quando papel = radiologista)
-- Botao "Editar" (icone de lapis) em cada card de usuario
-- Botao "Salvar" no modal que chama a mutacao de update
-- Estado local para controlar qual usuario esta sendo editado e os valores do formulario
+Tambem atualizar os dados existentes nas tabelas `exams`, `clients` e `app_users` que referenciam os nomes antigos.
 
-### 3. Sem alteracoes no banco de dados
-- A tabela `app_users` ja possui os campos `nome`, `papel`, `cliente_id` e `softwares`
-- A policy RLS "Only admin can update users" ja permite que admins editem qualquer usuario
+### 2. Arquivos a alterar no codigo (8 arquivos)
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/data/mockData.ts` | Tipo `Software`: `'Axel' \| 'Morita'` -> `'iDixel' \| 'OnDemand'` |
+| `src/pages/admin/Usuarios.tsx` | Array `softwareOptions`: `['Morita', 'Axel']` -> `['OnDemand', 'iDixel']` |
+| `src/pages/admin/Clientes.tsx` | Tipo `Software`, labels, cores e checkboxes |
+| `src/pages/admin/Radiologistas.tsx` | Condicional de cor do badge |
+| `src/pages/admin/Exames.tsx` | Condicional de cor do badge |
+| `src/pages/radiologista/ExamesDisponiveis.tsx` | Filtros do ToggleGroup e badges |
+| `src/pages/externo/NovoExame.tsx` | Fallback default `'Axel'` -> `'iDixel'` |
+
+Nota: o arquivo `src/integrations/supabase/types.ts` sera atualizado automaticamente apos a migracao do banco.
+
+### 3. Logica de cores mantida
+- **iDixel** (antigo Axel): violeta (`bg-violet-500/15 text-violet-600`)
+- **OnDemand** (antigo Morita): azul (`bg-sky-500/15 text-sky-600`)
+
