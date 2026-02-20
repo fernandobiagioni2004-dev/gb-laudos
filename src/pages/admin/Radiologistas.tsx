@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Eye, Monitor } from 'lucide-react';
+import { Eye, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function fmt(n: number) {
@@ -16,15 +16,29 @@ export default function Radiologistas() {
   const { exams } = useApp();
   const [detail, setDetail] = useState<string | null>(null);
 
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  function changeMonth(delta: number) {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  const [sy, sm] = selectedMonth.split('-');
+  const monthLabel = new Date(+sy, +sm - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
   const rows = useMemo(() => radiologists.map(r => {
-    const rExams = exams.filter(e => e.radiologistId === r.id && e.status !== 'Cancelado');
+    const rExams = exams.filter(e => e.radiologistId === r.id && e.status !== 'Cancelado' && e.createdAt.startsWith(selectedMonth));
     const done = rExams.filter(e => e.status === 'Finalizado');
     const toReceive = done.reduce((a, e) => a + e.radiologistValue, 0);
     return { ...r, examCount: done.length, inProgress: rExams.filter(e => e.status === 'Em análise').length, toReceive };
-  }), [exams]);
+  }), [exams, selectedMonth]);
 
   const detailRad = detail ? radiologists.find(r => r.id === detail) : null;
-  const detailExams = detail ? exams.filter(e => e.radiologistId === detail) : [];
+  const detailExams = detail ? exams.filter(e => e.radiologistId === detail && e.createdAt.startsWith(selectedMonth)) : [];
   const total = detailExams.filter(e => e.status === 'Finalizado').reduce((a, e) => a + e.radiologistValue, 0);
 
   return (
@@ -32,6 +46,17 @@ export default function Radiologistas() {
       <div>
         <h1 className="text-2xl font-bold">Radiologistas</h1>
         <p className="text-sm text-muted-foreground">{radiologists.length} radiologistas cadastrados</p>
+      </div>
+
+      {/* Month Selector */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(-1)}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium capitalize min-w-[160px] text-center">{monthLabel}</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(1)}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
