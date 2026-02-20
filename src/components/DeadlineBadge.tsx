@@ -36,7 +36,9 @@ export function DeadlineBadge({ createdAt, urgent, urgentDate, urgentTime, class
   const day = String(deadline.getDate()).padStart(2, '0');
   const month = String(deadline.getMonth() + 1).padStart(2, '0');
   const year = deadline.getFullYear();
-  const formatted = `${day}/${month}/${year}`;
+  const hours = String(deadline.getHours()).padStart(2, '0');
+  const minutes = String(deadline.getMinutes()).padStart(2, '0');
+  const formatted = `${day}/${month}/${year} às ${hours}:${minutes}`;
 
   const label = diffHours < 0 ? 'Vencido' : 'Prazo';
 
