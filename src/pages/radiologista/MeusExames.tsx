@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { clients, radiologists, examTypes } from '@/data/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
+import { DeadlineBadge } from '@/components/DeadlineBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -102,7 +103,8 @@ export default function MeusExamesRadiologista() {
                       </div>
                       <StatusBadge status={e.status} />
                     </div>
-                    <p className="text-xs text-muted-foreground">{e.software} · {e.createdAt}</p>
+                    <DeadlineBadge createdAt={e.createdAt} urgent={e.urgent} urgentDate={e.urgentDate} urgentTime={e.urgentTime} />
+                    <p className="text-xs text-muted-foreground">{e.software} · {formatDate(e.createdAt)}</p>
                     <Button size="sm" className="w-full gap-2" onClick={(ev) => { ev.stopPropagation(); setFinalizeId(e.id); }}>
                       <Upload className="h-3.5 w-3.5" />
                       Finalizar Laudo
@@ -210,6 +212,13 @@ export default function MeusExamesRadiologista() {
                     {detailExam.urgentDate && (
                       <span className="text-xs ml-auto">Prazo: {formatDate(detailExam.urgentDate)}{detailExam.urgentTime ? ` às ${detailExam.urgentTime}` : ''}</span>
                     )}
+                  </div>
+                 )}
+
+                {(detailExam.status === 'Disponível' || detailExam.status === 'Em análise') && (
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-1">Prazo do Laudo</p>
+                    <DeadlineBadge createdAt={detailExam.createdAt} urgent={detailExam.urgent} urgentDate={detailExam.urgentDate} urgentTime={detailExam.urgentTime} />
                   </div>
                 )}
 

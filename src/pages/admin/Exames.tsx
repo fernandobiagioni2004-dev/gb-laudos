@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { clients, examTypes, radiologists, Exam } from '@/data/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
+import { DeadlineBadge } from '@/components/DeadlineBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -179,6 +180,12 @@ export default function Exames() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Observações</p>
                   <p className="bg-muted/40 rounded p-2">{detailExam.observations}</p>
+                </div>
+              )}
+              {(detailExam.status === 'Disponível' || detailExam.status === 'Em análise') && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Prazo do Laudo</p>
+                  <DeadlineBadge createdAt={detailExam.createdAt} urgent={detailExam.urgent} urgentDate={detailExam.urgentDate} urgentTime={detailExam.urgentTime} />
                 </div>
               )}
               <div>
