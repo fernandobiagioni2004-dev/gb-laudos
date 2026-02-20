@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,16 +14,6 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [isRecovery, setIsRecovery] = useState(false);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsRecovery(true);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,25 +54,19 @@ export default function ResetPassword() {
           <CardTitle className="text-xl">Redefinir Senha</CardTitle>
         </CardHeader>
         <CardContent>
-          {!isRecovery ? (
-            <p className="text-sm text-muted-foreground text-center">
-              Aguarde... verificando link de recuperação.
-            </p>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Nova senha</Label>
-                <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Confirmar senha</Label>
-                <Input type="password" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} />
-              </div>
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? 'Aguarde...' : 'Redefinir Senha'}
-              </Button>
-            </form>
-          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Nova senha</Label>
+              <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirmar senha</Label>
+              <Input type="password" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} />
+            </div>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? 'Aguarde...' : 'Redefinir Senha'}
+            </Button>
+          </form>
           <p className="text-xs text-center text-muted-foreground mt-4">
             <button onClick={() => navigate('/auth')} className="text-primary hover:underline font-medium">
               Voltar ao login
