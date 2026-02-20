@@ -63,6 +63,9 @@ export interface Exam {
   urgent?: boolean;
   urgentDate?: string;
   urgentTime?: string;
+  dentistName?: string;
+  purpose?: string;
+  examDate?: string;
 }
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
@@ -132,6 +135,9 @@ function makeExam(
   status: ExamStatus,
   createdAt: string,
   observations = '',
+  dentistName?: string,
+  purpose?: string,
+  examDate?: string,
 ): Exam {
   const { clientValue, radiologistValue, margin } = calcValues(clientId, examTypeId, radiologistId);
   const history: StatusHistoryEntry[] = [{ status: 'Disponível', date: createdAt, by: 'Sistema' }];
@@ -151,6 +157,9 @@ function makeExam(
     statusHistory: history,
     files: status === 'Finalizado' ? ['laudo_' + id + '.pdf'] : [],
     uploadedFile: 'exame_' + id + '.dcm',
+    dentistName,
+    purpose,
+    examDate,
   };
 }
 
@@ -178,24 +187,24 @@ export const initialCalendarEvents: CalendarEvent[] = [
 ];
 
 export const initialExams: Exam[] = [
-  makeExam('EX001', 'c1', 'João Silva',        '1985-03-12', 'et1', 'Axel',   'r1', 'Finalizado',  '2026-02-01'),
-  makeExam('EX002', 'c1', 'Maria Oliveira',    '1992-07-22', 'et2', 'Axel',   'r2', 'Finalizado',  '2026-02-02'),
-  makeExam('EX003', 'c2', 'Carlos Pereira',    '1978-11-05', 'et3', 'Morita', 'r3', 'Finalizado',  '2026-02-03'),
-  makeExam('EX004', 'c2', 'Ana Costa',         '2001-01-30', 'et1', 'Morita', 'r4', 'Finalizado',  '2026-02-04'),
-  makeExam('EX005', 'c3', 'Pedro Rodrigues',   '1990-06-18', 'et2', 'Axel',   'r1', 'Finalizado',  '2026-02-05'),
-  makeExam('EX006', 'c3', 'Fernanda Lima',     '1975-09-25', 'et3', 'Axel',   'r2', 'Finalizado',  '2026-02-06'),
-  makeExam('EX007', 'c1', 'Ricardo Souza',     '1988-04-14', 'et1', 'Morita', 'r3', 'Finalizado',  '2026-02-07'),
-  makeExam('EX008', 'c2', 'Juliana Mendes',    '1995-12-03', 'et2', 'Morita', 'r4', 'Finalizado',  '2026-02-08'),
-  makeExam('EX009', 'c3', 'Lucas Ferreira',    '1983-08-27', 'et3', 'Axel',   'r1', 'Finalizado',  '2026-02-09'),
-  makeExam('EX010', 'c1', 'Camila Alves',      '1998-02-16', 'et1', 'Axel',   'r2', 'Finalizado',  '2026-02-10'),
-  { ...makeExam('EX011', 'c2', 'Bruno Martins',     '1970-10-08', 'et2', 'Morita', 'r3', 'Em análise',  '2026-02-11'), urgent: true, urgentDate: '2026-02-13', urgentTime: '18:00' },
-  makeExam('EX012', 'c3', 'Patrícia Santos',   '1987-05-20', 'et3', 'Morita', 'r4', 'Em análise',  '2026-02-12'),
-  { ...makeExam('EX013', 'c1', 'Eduardo Nunes',     '2000-03-07', 'et1', 'Axel',   'r1', 'Em análise',  '2026-02-13'), urgent: true, urgentDate: '2026-02-15', urgentTime: '10:00' },
-  makeExam('EX014', 'c2', 'Larissa Carvalho',  '1993-07-11', 'et2', 'Axel',   'r2', 'Em análise',  '2026-02-14'),
-  { ...makeExam('EX015', 'c3', 'Marcos Ribeiro',    '1982-01-24', 'et3', 'Morita', null, 'Disponível',  '2026-02-15'), urgent: true, urgentDate: '2026-02-17', urgentTime: '14:00' },
-  makeExam('EX016', 'c1', 'Isabela Gomes',     '1997-09-02', 'et1', 'Morita', null, 'Disponível',  '2026-02-16'),
-  { ...makeExam('EX017', 'c2', 'Felipe Araújo',     '1976-06-29', 'et2', 'Axel',   null, 'Disponível',  '2026-02-17'), urgent: true, urgentDate: '2026-02-19', urgentTime: '09:00' },
-  makeExam('EX018', 'c3', 'Vanessa Correia',   '2003-04-15', 'et3', 'Axel',   null, 'Disponível',  '2026-02-17'),
-  makeExam('EX019', 'c1', 'Rafael Baptista',   '1991-11-18', 'et1', 'Morita', null, 'Disponível',  '2026-02-18'),
-  makeExam('EX020', 'c2', 'Daniela Fonseca',   '1984-08-04', 'et2', 'Morita', null, 'Cancelado',   '2026-02-10', 'Paciente desmarcou'),
+  makeExam('EX001', 'c1', 'João Silva',        '1985-03-12', 'et1', 'Axel',   'r1', 'Finalizado',  '2026-02-01', '', 'Dr. Henrique Campos', 'Avaliação periodontal', '2026-01-30'),
+  makeExam('EX002', 'c1', 'Maria Oliveira',    '1992-07-22', 'et2', 'Axel',   'r2', 'Finalizado',  '2026-02-02', '', 'Dra. Patrícia Lemos', 'Planejamento de implante', '2026-02-01'),
+  makeExam('EX003', 'c2', 'Carlos Pereira',    '1978-11-05', 'et3', 'Morita', 'r3', 'Finalizado',  '2026-02-03', '', 'Dr. Marcos Vieira', 'Endodontia', '2026-02-02'),
+  makeExam('EX004', 'c2', 'Ana Costa',         '2001-01-30', 'et1', 'Morita', 'r4', 'Finalizado',  '2026-02-04', '', 'Dra. Camila Neves', 'Ortodontia', '2026-02-03'),
+  makeExam('EX005', 'c3', 'Pedro Rodrigues',   '1990-06-18', 'et2', 'Axel',   'r1', 'Finalizado',  '2026-02-05', '', 'Dr. André Matos', 'Avaliação de cisto', '2026-02-04'),
+  makeExam('EX006', 'c3', 'Fernanda Lima',     '1975-09-25', 'et3', 'Axel',   'r2', 'Finalizado',  '2026-02-06', '', 'Dra. Renata Dias', 'Avaliação pré-cirúrgica', '2026-02-05'),
+  makeExam('EX007', 'c1', 'Ricardo Souza',     '1988-04-14', 'et1', 'Morita', 'r3', 'Finalizado',  '2026-02-07', '', 'Dr. Felipe Barros', 'Ortodontia', '2026-02-06'),
+  makeExam('EX008', 'c2', 'Juliana Mendes',    '1995-12-03', 'et2', 'Morita', 'r4', 'Finalizado',  '2026-02-08', '', 'Dra. Lúcia Andrade', 'Implante', '2026-02-07'),
+  makeExam('EX009', 'c3', 'Lucas Ferreira',    '1983-08-27', 'et3', 'Axel',   'r1', 'Finalizado',  '2026-02-09', '', 'Dr. Roberto Lima', 'Endodontia', '2026-02-08'),
+  makeExam('EX010', 'c1', 'Camila Alves',      '1998-02-16', 'et1', 'Axel',   'r2', 'Finalizado',  '2026-02-10', '', 'Dra. Amanda Torres', 'Avaliação periodontal', '2026-02-09'),
+  { ...makeExam('EX011', 'c2', 'Bruno Martins',     '1970-10-08', 'et2', 'Morita', 'r3', 'Em análise',  '2026-02-11', '', 'Dr. Paulo Mendes', 'Planejamento de implante', '2026-02-10'), urgent: true, urgentDate: '2026-02-13', urgentTime: '18:00' },
+  makeExam('EX012', 'c3', 'Patrícia Santos',   '1987-05-20', 'et3', 'Morita', 'r4', 'Em análise',  '2026-02-12', '', 'Dra. Beatriz Faria', 'Avaliação de lesão', '2026-02-11'),
+  { ...makeExam('EX013', 'c1', 'Eduardo Nunes',     '2000-03-07', 'et1', 'Axel',   'r1', 'Em análise',  '2026-02-13', '', 'Dr. Gustavo Pinto', 'Ortodontia', '2026-02-12'), urgent: true, urgentDate: '2026-02-15', urgentTime: '10:00' },
+  makeExam('EX014', 'c2', 'Larissa Carvalho',  '1993-07-11', 'et2', 'Axel',   'r2', 'Em análise',  '2026-02-14', '', 'Dra. Fernanda Luz', 'Implante', '2026-02-13'),
+  { ...makeExam('EX015', 'c3', 'Marcos Ribeiro',    '1982-01-24', 'et3', 'Morita', null, 'Disponível',  '2026-02-15', '', 'Dr. Thiago Ramos', 'Endodontia', '2026-02-14'), urgent: true, urgentDate: '2026-02-17', urgentTime: '14:00' },
+  makeExam('EX016', 'c1', 'Isabela Gomes',     '1997-09-02', 'et1', 'Morita', null, 'Disponível',  '2026-02-16', '', 'Dra. Mariana Lopes', 'Avaliação periodontal', '2026-02-15'),
+  { ...makeExam('EX017', 'c2', 'Felipe Araújo',     '1976-06-29', 'et2', 'Axel',   null, 'Disponível',  '2026-02-17', '', 'Dr. Leonardo Freitas', 'Avaliação de cisto', '2026-02-16'), urgent: true, urgentDate: '2026-02-19', urgentTime: '09:00' },
+  makeExam('EX018', 'c3', 'Vanessa Correia',   '2003-04-15', 'et3', 'Axel',   null, 'Disponível',  '2026-02-17', '', 'Dra. Carolina Silva', 'Pré-cirúrgico', '2026-02-16'),
+  makeExam('EX019', 'c1', 'Rafael Baptista',   '1991-11-18', 'et1', 'Morita', null, 'Disponível',  '2026-02-18', '', 'Dr. Diego Monteiro', 'Ortodontia', '2026-02-17'),
+  makeExam('EX020', 'c2', 'Daniela Fonseca',   '1984-08-04', 'et2', 'Morita', null, 'Cancelado',   '2026-02-10', 'Paciente desmarcou', 'Dr. Sérgio Cunha', 'Implante', '2026-02-09'),
 ];

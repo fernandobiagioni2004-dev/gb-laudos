@@ -71,9 +71,13 @@ export default function NovoExame() {
       createdAt: today,
       statusHistory: [{ status: 'Disponível', date: today, by: 'Portal Cliente' }],
       files: [],
+      uploadedFile: selectedFile?.name,
       urgent: form.urgent,
       urgentDate: form.urgent ? form.urgentDate : undefined,
       urgentTime: form.urgent ? form.urgentTime : undefined,
+      dentistName: form.dentistName,
+      purpose: form.purpose,
+      examDate: form.examDate,
     };
     addExam(newExam);
     setSubmitted(true);
