@@ -59,6 +59,7 @@ export interface Exam {
   createdAt: string;
   statusHistory: StatusHistoryEntry[];
   files: string[];
+  uploadedFile?: string;
   urgent?: boolean;
   urgentDate?: string;
   urgentTime?: string;
@@ -149,6 +150,7 @@ function makeExam(
     clientValue, radiologistValue, margin, observations, createdAt,
     statusHistory: history,
     files: status === 'Finalizado' ? ['laudo_' + id + '.pdf'] : [],
+    uploadedFile: 'exame_' + id + '.dcm',
   };
 }
 
@@ -186,9 +188,9 @@ export const initialExams: Exam[] = [
   makeExam('EX008', 'c2', 'Juliana Mendes',    '1995-12-03', 'et2', 'Morita', 'r4', 'Finalizado',  '2026-02-08'),
   makeExam('EX009', 'c3', 'Lucas Ferreira',    '1983-08-27', 'et3', 'Axel',   'r1', 'Finalizado',  '2026-02-09'),
   makeExam('EX010', 'c1', 'Camila Alves',      '1998-02-16', 'et1', 'Axel',   'r2', 'Finalizado',  '2026-02-10'),
-  makeExam('EX011', 'c2', 'Bruno Martins',     '1970-10-08', 'et2', 'Morita', 'r3', 'Em análise',  '2026-02-11'),
+  { ...makeExam('EX011', 'c2', 'Bruno Martins',     '1970-10-08', 'et2', 'Morita', 'r3', 'Em análise',  '2026-02-11'), urgent: true, urgentDate: '2026-02-13', urgentTime: '18:00' },
   makeExam('EX012', 'c3', 'Patrícia Santos',   '1987-05-20', 'et3', 'Morita', 'r4', 'Em análise',  '2026-02-12'),
-  makeExam('EX013', 'c1', 'Eduardo Nunes',     '2000-03-07', 'et1', 'Axel',   'r1', 'Em análise',  '2026-02-13'),
+  { ...makeExam('EX013', 'c1', 'Eduardo Nunes',     '2000-03-07', 'et1', 'Axel',   'r1', 'Em análise',  '2026-02-13'), urgent: true, urgentDate: '2026-02-15', urgentTime: '10:00' },
   makeExam('EX014', 'c2', 'Larissa Carvalho',  '1993-07-11', 'et2', 'Axel',   'r2', 'Em análise',  '2026-02-14'),
   makeExam('EX015', 'c3', 'Marcos Ribeiro',    '1982-01-24', 'et3', 'Morita', null, 'Disponível',  '2026-02-15'),
   makeExam('EX016', 'c1', 'Isabela Gomes',     '1997-09-02', 'et1', 'Morita', null, 'Disponível',  '2026-02-16'),

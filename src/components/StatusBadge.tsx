@@ -1,3 +1,4 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 import type { ExamStatus } from '@/data/mockData';
 
@@ -15,15 +16,20 @@ const dots: Record<ExamStatus, string> = {
   'Cancelado':  'bg-red-400',
 };
 
-export function StatusBadge({ status, className }: { status: ExamStatus; className?: string }) {
-  return (
-    <span className={cn(
+export const StatusBadge = React.forwardRef<
+  HTMLSpanElement,
+  { status: ExamStatus; className?: string }
+>(({ status, className }, ref) => (
+  <span
+    ref={ref}
+    className={cn(
       'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all',
       variants[status],
       className,
-    )}>
-      <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', dots[status])} />
-      {status}
-    </span>
-  );
-}
+    )}
+  >
+    <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', dots[status])} />
+    {status}
+  </span>
+));
+StatusBadge.displayName = 'StatusBadge';

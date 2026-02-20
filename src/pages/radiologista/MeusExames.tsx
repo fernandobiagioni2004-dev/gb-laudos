@@ -5,7 +5,8 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileText, Upload } from 'lucide-react';
+import { FileText, Upload, AlertTriangle, Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 const SIMULATED_RADIOLOGIST = radiologists[0];
 
@@ -13,16 +14,21 @@ export default function MeusExamesRadiologista() {
   const { exams, finalizeExam } = useApp();
   const [finalizeId, setFinalizeId] = useState<string | null>(null);
   const [uploadDone, setUploadDone] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const myExams = useMemo(() =>
     exams.filter(e => e.radiologistId === SIMULATED_RADIOLOGIST.id),
     [exams]
   );
 
-  const inProgress = myExams.filter(e => e.status === 'Em análise');
-  const finished = myExams.filter(e => e.status === 'Finalizado');
+  const sortUrgentFirst = (list: typeof myExams) =>
+    [...list].sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+
+  const inProgress = sortUrgentFirst(myExams.filter(e => e.status === 'Em análise'));
+  const finished = sortUrgentFirst(myExams.filter(e => e.status === 'Finalizado'));
 
   const finalizeExamItem = finalizeId ? exams.find(e => e.id === finalizeId) : null;
+  const detailExam = detailId ? exams.find(e => e.id === detailId) : null;
 
   const handleFinalize = () => {
     if (finalizeId) {
@@ -30,6 +36,42 @@ export default function MeusExamesRadiologista() {
       setFinalizeId(null);
       setUploadDone(false);
     }
+  };
+
+  const handleDownloadFile = (fileName: string) => {
+    toast.success(`Download simulado: ${fileName}`);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  };
+
+  const PatientNameLink = ({ name, examId }: { name: string; examId: string }) => (
+    <button
+      type="button"
+      className="font-semibold text-left hover:underline hover:text-primary transition-colors cursor-pointer"
+      onClick={(ev) => { ev.stopPropagation(); setDetailId(examId); }}
+    >
+      {name}
+    </button>
+  );
+
+  const UrgentBadge = ({ exam }: { exam: typeof detailExam }) => {
+    if (!exam?.urgent) return null;
+    return (
+      <div className="space-y-0.5">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse">
+          <AlertTriangle className="h-3 w-3" />
+          Urgente
+        </span>
+        {exam.urgentDate && (
+          <p className="text-[10px] text-red-400/80">
+            Prazo: {formatDate(exam.urgentDate)}{exam.urgentTime ? ` às ${exam.urgentTime}` : ''}
+          </p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -53,12 +95,15 @@ export default function MeusExamesRadiologista() {
               const client = clients.find(c => c.id === e.clientId);
               const examType = examTypes.find(t => t.id === e.examTypeId);
               return (
-                <Card key={e.id} className="border-amber-500/20 hover:border-amber-500/40 transition-all">
+                <Card key={e.id} className={`transition-all ${e.urgent ? 'border-red-500/40 hover:border-red-500/60' : 'border-amber-500/20 hover:border-amber-500/40'}`}>
                   <CardContent className="p-5 space-y-3">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <span className="font-mono text-xs text-primary">{e.id}</span>
-                        <p className="font-semibold">{e.patientName}</p>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-primary">{e.id}</span>
+                          <UrgentBadge exam={e} />
+                        </div>
+                        <PatientNameLink name={e.patientName} examId={e.id} />
                         <p className="text-xs text-muted-foreground">{client?.name} · {examType?.name}</p>
                       </div>
                       <StatusBadge status={e.status} />
@@ -93,7 +138,13 @@ export default function MeusExamesRadiologista() {
                   <CardContent className="flex items-center justify-between py-3 px-5">
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-xs text-primary">{e.id}</span>
-                      <span className="font-medium">{e.patientName}</span>
+                      {e.urgent && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/40">
+                          <AlertTriangle className="h-2.5 w-2.5" />
+                          Urgente
+                        </span>
+                      )}
+                      <PatientNameLink name={e.patientName} examId={e.id} />
                       <span className="text-sm text-muted-foreground">{client?.name}</span>
                       <span className="text-sm text-muted-foreground">{examType?.name}</span>
                     </div>
@@ -108,6 +159,96 @@ export default function MeusExamesRadiologista() {
           </div>
         )}
       </section>
+
+      {/* Detail Dialog */}
+      <Dialog open={!!detailId} onOpenChange={() => setDetailId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Exame</DialogTitle>
+            <DialogDescription>
+              {detailExam?.id} — {detailExam?.patientName}
+            </DialogDescription>
+          </DialogHeader>
+          {detailExam && (() => {
+            const client = clients.find(c => c.id === detailExam.clientId);
+            const examType = examTypes.find(t => t.id === detailExam.examTypeId);
+            return (
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Paciente</p>
+                    <p className="font-medium">{detailExam.patientName}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Data Nasc.</p>
+                    <p className="font-medium">{formatDate(detailExam.patientBirthDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Cliente</p>
+                    <p className="font-medium">{client?.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Tipo</p>
+                    <p className="font-medium">{examType?.name} ({detailExam.examCategory})</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Software</p>
+                    <p className="font-medium">{detailExam.software}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Data Criação</p>
+                    <p className="font-medium">{formatDate(detailExam.createdAt)}</p>
+                  </div>
+                </div>
+
+                {detailExam.urgent && (
+                  <div className="p-2 rounded-md bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-400">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="font-semibold text-xs uppercase">Urgente</span>
+                    {detailExam.urgentDate && (
+                      <span className="text-xs ml-auto">Prazo: {formatDate(detailExam.urgentDate)}{detailExam.urgentTime ? ` às ${detailExam.urgentTime}` : ''}</span>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Observações</p>
+                  <p className="text-sm">{detailExam.observations || 'Nenhuma observação'}</p>
+                </div>
+
+                <div>
+                  <p className="text-muted-foreground text-xs mb-2">Histórico de Status</p>
+                  <div className="space-y-1">
+                    {detailExam.statusHistory.map((h, i) => (
+                      <div key={i} className="flex items-center gap-3 text-xs">
+                        <StatusBadge status={h.status} className="text-[10px] px-2 py-0.5" />
+                        <span className="text-muted-foreground">{formatDate(h.date)}</span>
+                        <span>{h.by}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {detailExam.uploadedFile && (
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-2">Arquivo do Cliente</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleDownloadFile(detailExam.uploadedFile!)}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Baixar Arquivo
+                    </Button>
+                    <span className="text-xs text-muted-foreground ml-2">{detailExam.uploadedFile}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Finalize Dialog */}
       <Dialog open={!!finalizeId} onOpenChange={() => { setFinalizeId(null); setUploadDone(false); }}>
