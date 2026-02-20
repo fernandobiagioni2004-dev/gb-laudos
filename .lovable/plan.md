@@ -1,71 +1,46 @@
 
 
-## Melhorias na tela "Meus Exames" do Radiologista
+## Indicador de Urgencia na tela Exames Disponiveis
 
 ### Resumo
 
-Adicionar dialog de detalhes ao clicar no nome do paciente, com download do arquivo enviado pelo cliente externo (nao o laudo). Incluir indicador visual de exames urgentes.
+Adicionar badge "URGENTE" pulsante nos cards de exames disponiveis que possuem flag de urgencia, e ordenar exames urgentes primeiro na lista. Tambem adicionar 1-2 exames "Disponivel" com flag urgente no mock data para que o indicador seja visivel nesta tela.
 
 ### Alteracoes por arquivo
 
 #### 1. `src/data/mockData.ts`
 
-- Na funcao `makeExam`, adicionar campo `uploadedFile` simulando o arquivo enviado pelo usuario externo (ex: `exame_EX001.dcm` para todos os exames)
-- Adicionar `urgent: true`, `urgentDate` e `urgentTime` em 2 exames "Em analise" (EX011 e EX013) para testar o indicador visual
-- Adicionar `uploadedFile` na interface `Exam`
+- Marcar 1-2 exames com status "Disponivel" como urgentes para testar na tela:
+  - EX015 (Marcos Ribeiro): `urgent: true, urgentDate: '2026-02-17', urgentTime: '14:00'`
+  - EX017 (Felipe Araujo): `urgent: true, urgentDate: '2026-02-19', urgentTime: '09:00'`
 
-#### 2. `src/pages/radiologista/MeusExames.tsx`
+#### 2. `src/pages/radiologista/ExamesDisponiveis.tsx`
 
-**Dialog de detalhes (clique no nome do paciente):**
-- Novo estado `detailId` para controlar o dialog
-- Nome do paciente vira clicavel (cursor pointer, hover underline, cor primaria)
-- Dialog exibe:
-  - ID do exame, nome do paciente, data de nascimento
-  - Cliente solicitante, tipo de exame, categoria
-  - Software utilizado
-  - Observacoes clinicas (ou "Nenhuma")
-  - Historico de status com datas
-  - Botao "Baixar Arquivo" para o arquivo enviado pelo cliente externo (simulado)
+- Importar `AlertTriangle` de lucide-react
+- No `useMemo`, apos filtrar, ordenar exames urgentes primeiro (`.sort((a,b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0))`)
+- No card de cada exame, se `e.urgent === true`:
+  - Adicionar badge vermelho pulsante com icone `AlertTriangle` e texto "URGENTE" entre o cabecalho e a info do tipo de exame
+  - Se houver `urgentDate`/`urgentTime`, exibir "Prazo: dd/mm/aaaa as HH:MM" abaixo do badge
+  - Adicionar borda vermelha sutil no card (`border-red-500/40`)
 
-**Indicador de urgencia:**
-- Badge vermelho pulsante com icone `AlertTriangle` e texto "URGENTE" nos cards de exames urgentes
-- Se houver data/horario de urgencia, exibir "Prazo: dd/mm/aaaa as HH:MM"
-- Exames urgentes ordenados primeiro nas listas
-
-**Importacoes adicionais:** `AlertTriangle`, `Download`, `Eye`, `Calendar`
-
-#### 3. `src/components/StatusBadge.tsx`
-
-- Envolver com `React.forwardRef` para eliminar warning no console
-
-### Layout do Dialog de detalhes
+### Visual do card urgente
 
 ```text
 +------------------------------------------+
-| Detalhes do Exame                   [X]  |
-| EX011 -- Bruno Martins                   |
+| EX015              [Disponivel]          |
+| Marcos Ribeiro                           |
+| Centro de Imagem Dental                  |
 |                                          |
-| Paciente: Bruno Martins                  |
-| Data Nasc.: 08/10/1970                   |
-| Cliente: Centro de Imagem Dental         |
-| Tipo: Tomografia (tomografia)            |
-| Software: Morita                         |
-| Data Criacao: 11/02/2026                 |
+| [!] URGENTE   Prazo: 17/02/2026 as 14:00|
 |                                          |
-| Observacoes:                             |
-| (texto ou "Nenhuma observacao")          |
-|                                          |
-| Historico de Status:                     |
-| Disponivel  11/02/2026  Sistema          |
-| Em analise  11/02/2026  Dr. Ricardo      |
-|                                          |
-| Arquivo do Cliente:                      |
-| [Baixar Arquivo] exame_EX011.dcm         |
+| Tomografia   [Morita]                    |
+| Solicitado em 15/02/2026                 |
+| [      Assumir Exame      ]             |
 +------------------------------------------+
 ```
 
 ### Detalhes tecnicos
 
-- O botao "Baixar Arquivo" simula o download (nao ha backend real)
-- O campo `uploadedFile` representa o arquivo DICOM/imagem enviado pelo cliente externo, diferente do `files[]` que contem o laudo do radiologista
+- Reutilizar o mesmo estilo de badge pulsante ja implementado em MeusExames.tsx (`animate-pulse bg-red-500/15 text-red-400`)
 - Nenhuma nova dependencia necessaria
+
