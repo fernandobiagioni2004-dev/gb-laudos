@@ -10,6 +10,11 @@ import { AlertTriangle, ClipboardList, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Simulating as Dr. Carlos Menezes (Axel) for radiologista role
+function formatDateBR(dateStr: string) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 const SIMULATED_RADIOLOGIST = radiologists[0]; // r1 - Axel
 
 export default function ExamesDisponiveis() {
@@ -103,7 +108,7 @@ export default function ExamesDisponiveis() {
                       <Monitor className="h-3 w-3" />{e.software}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Solicitado em {e.createdAt}</p>
+                  <p className="text-xs text-muted-foreground">Solicitado em {formatDateBR(e.createdAt)}</p>
                   {e.observations && (
                     <p className="text-xs bg-muted/30 rounded p-2 text-muted-foreground">{e.observations}</p>
                   )}

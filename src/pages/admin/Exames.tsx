@@ -15,6 +15,11 @@ import { Search, Eye, UserCheck, XCircle, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+function formatDateBR(dateStr: string) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 }
@@ -150,7 +155,7 @@ export default function Exames() {
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Paciente" value={detailExam.patientName} />
-                <Field label="Nascimento" value={detailExam.patientBirthDate} />
+                <Field label="Nascimento" value={formatDateBR(detailExam.patientBirthDate)} />
                 <Field label="Cliente" value={getClient(detailExam.clientId)?.name ?? '—'} />
                 <Field label="Tipo" value={getExamType(detailExam.examTypeId)?.name ?? '—'} />
                 <Field label="Software" value={detailExam.software} />
@@ -182,7 +187,7 @@ export default function Exames() {
                   {detailExam.statusHistory.map((h, i) => (
                     <div key={i} className="flex items-center gap-3 text-xs">
                       <StatusBadge status={h.status} />
-                      <span className="text-muted-foreground">{h.date}</span>
+                      <span className="text-muted-foreground">{formatDateBR(h.date)}</span>
                       <span className="text-muted-foreground">por {h.by}</span>
                     </div>
                   ))}
