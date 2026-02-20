@@ -47,14 +47,8 @@ export default function MeusExamesRadiologista() {
     return `${d}/${m}/${y}`;
   };
 
-  const PatientNameLink = ({ name, examId }: { name: string; examId: string }) => (
-    <button
-      type="button"
-      className="font-semibold text-left hover:underline hover:text-primary transition-colors cursor-pointer"
-      onClick={(ev) => { ev.stopPropagation(); setDetailId(examId); }}
-    >
-      {name}
-    </button>
+  const PatientNameLink = ({ name }: { name: string }) => (
+    <span className="font-semibold">{name}</span>
   );
 
   const UrgentBadge = ({ exam }: { exam: typeof detailExam }) => {
@@ -95,7 +89,7 @@ export default function MeusExamesRadiologista() {
               const client = clients.find(c => c.id === e.clientId);
               const examType = examTypes.find(t => t.id === e.examTypeId);
               return (
-                <Card key={e.id} className={`transition-all ${e.urgent ? 'border-red-500/40 hover:border-red-500/60' : 'border-amber-500/20 hover:border-amber-500/40'}`}>
+                <Card key={e.id} className={`transition-all cursor-pointer ${e.urgent ? 'border-red-500/40 hover:border-red-500/60' : 'border-amber-500/20 hover:border-amber-500/40'}`} onClick={() => setDetailId(e.id)}>
                   <CardContent className="p-5 space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -103,13 +97,13 @@ export default function MeusExamesRadiologista() {
                           <span className="font-mono text-xs text-primary">{e.id}</span>
                           <UrgentBadge exam={e} />
                         </div>
-                        <PatientNameLink name={e.patientName} examId={e.id} />
+                        <PatientNameLink name={e.patientName} />
                         <p className="text-xs text-muted-foreground">{client?.name} · {examType?.name}</p>
                       </div>
                       <StatusBadge status={e.status} />
                     </div>
                     <p className="text-xs text-muted-foreground">{e.software} · {e.createdAt}</p>
-                    <Button size="sm" className="w-full gap-2" onClick={() => setFinalizeId(e.id)}>
+                    <Button size="sm" className="w-full gap-2" onClick={(ev) => { ev.stopPropagation(); setFinalizeId(e.id); }}>
                       <Upload className="h-3.5 w-3.5" />
                       Finalizar Laudo
                     </Button>
@@ -134,7 +128,7 @@ export default function MeusExamesRadiologista() {
               const client = clients.find(c => c.id === e.clientId);
               const examType = examTypes.find(t => t.id === e.examTypeId);
               return (
-                <Card key={e.id}>
+                <Card key={e.id} className="cursor-pointer transition-all hover:border-primary/30" onClick={() => setDetailId(e.id)}>
                   <CardContent className="flex items-center justify-between py-3 px-5">
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-xs text-primary">{e.id}</span>
@@ -144,7 +138,7 @@ export default function MeusExamesRadiologista() {
                           Urgente
                         </span>
                       )}
-                      <PatientNameLink name={e.patientName} examId={e.id} />
+                      <PatientNameLink name={e.patientName} />
                       <span className="text-sm text-muted-foreground">{client?.name}</span>
                       <span className="text-sm text-muted-foreground">{examType?.name}</span>
                     </div>
