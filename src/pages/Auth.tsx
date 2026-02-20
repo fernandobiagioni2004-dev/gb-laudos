@@ -63,7 +63,7 @@ export default function Auth() {
       <Card className="relative z-10 w-full max-w-sm">
         <CardHeader className="text-center space-y-3">
           <div className="flex justify-center">
-            <img src={gbLaudosLogo} alt="GB Laudos" className="h-14 w-14 rounded-xl object-contain" />
+            <img src={gbLaudosLogo} alt="GB Laudos" className="h-16 w-auto object-contain" />
           </div>
           <CardTitle className="text-xl">{isLogin ? 'Entrar' : 'Criar Conta'}</CardTitle>
         </CardHeader>
