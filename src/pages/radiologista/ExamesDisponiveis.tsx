@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ClipboardList, Monitor } from 'lucide-react';
+import { AlertTriangle, ClipboardList, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Simulating as Dr. Carlos Menezes (Axel) for radiologista role
@@ -22,7 +22,7 @@ export default function ExamesDisponiveis() {
       e.status === 'Disponível' &&
       SIMULATED_RADIOLOGIST.software.includes(e.software) &&
       (softwareFilter === 'Todos' || e.software === softwareFilter)
-    ), [exams, softwareFilter]);
+    ).sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0)), [exams, softwareFilter]);
 
   const handleAssume = (examId: string) => {
     assumeExam(examId, SIMULATED_RADIOLOGIST.id);
@@ -72,7 +72,7 @@ export default function ExamesDisponiveis() {
             const client = clients.find(c => c.id === e.clientId);
             const examType = examTypes.find(t => t.id === e.examTypeId);
             return (
-              <Card key={e.id} className="hover:border-primary/30 transition-all">
+              <Card key={e.id} className={cn('hover:border-primary/30 transition-all', e.urgent && 'border-red-500/40')}>
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
@@ -82,6 +82,19 @@ export default function ExamesDisponiveis() {
                     </div>
                     <StatusBadge status={e.status} />
                   </div>
+                  {e.urgent && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse bg-red-500/15 text-red-400 border border-red-500/30">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        URGENTE
+                      </span>
+                      {e.urgentDate && (
+                        <span className="text-xs text-red-400">
+                          Prazo: {e.urgentDate.split('-').reverse().join('/')}{e.urgentTime ? ` às ${e.urgentTime}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{examType?.name}</span>
                     <span className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1',
