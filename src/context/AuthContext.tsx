@@ -68,6 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
+      if (event === 'PASSWORD_RECOVERY') {
+        // Don't run initUser during password recovery to avoid interfering with reset page
+        setLoading(false);
+        return;
+      }
+
       if (newSession?.user) {
         // Use setTimeout to avoid Supabase auth deadlock
         setTimeout(async () => {
