@@ -1,38 +1,17 @@
 
 
-# Renomear Softwares: Axel -> iDixel, Morita -> OnDemand
+# Adicionar imagem de fundo na tela de login
 
-## O que muda para voce
-Os nomes dos softwares em todo o sistema serao atualizados:
-- **Axel** passa a se chamar **iDixel**
-- **Morita** passa a se chamar **OnDemand**
-
-Isso afeta todas as telas: cadastro de clientes, exames disponiveis, gestao de usuarios, radiologistas e listagem de exames.
+## O que muda
+A tela de login tera a imagem enviada como fundo, cobrindo toda a tela, com o card de login centralizado por cima com um leve overlay para manter a legibilidade.
 
 ## Detalhes Tecnicos
 
-### 1. Migracao no banco de dados
-Renomear os valores do enum `exam_software`:
-- `Axel` -> `iDixel`
-- `Morita` -> `OnDemand`
+### 1. Copiar a imagem para o projeto
+- Copiar `user-uploads://WhatsApp_Image_2026-02-20_at_19.25.00.jpeg` para `src/assets/login-bg.jpeg`
 
-Tambem atualizar os dados existentes nas tabelas `exams`, `clients` e `app_users` que referenciam os nomes antigos.
-
-### 2. Arquivos a alterar no codigo (8 arquivos)
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/data/mockData.ts` | Tipo `Software`: `'Axel' \| 'Morita'` -> `'iDixel' \| 'OnDemand'` |
-| `src/pages/admin/Usuarios.tsx` | Array `softwareOptions`: `['Morita', 'Axel']` -> `['OnDemand', 'iDixel']` |
-| `src/pages/admin/Clientes.tsx` | Tipo `Software`, labels, cores e checkboxes |
-| `src/pages/admin/Radiologistas.tsx` | Condicional de cor do badge |
-| `src/pages/admin/Exames.tsx` | Condicional de cor do badge |
-| `src/pages/radiologista/ExamesDisponiveis.tsx` | Filtros do ToggleGroup e badges |
-| `src/pages/externo/NovoExame.tsx` | Fallback default `'Axel'` -> `'iDixel'` |
-
-Nota: o arquivo `src/integrations/supabase/types.ts` sera atualizado automaticamente apos a migracao do banco.
-
-### 3. Logica de cores mantida
-- **iDixel** (antigo Axel): violeta (`bg-violet-500/15 text-violet-600`)
-- **OnDemand** (antigo Morita): azul (`bg-sky-500/15 text-sky-600`)
+### 2. Alterar `src/pages/Auth.tsx`
+- Importar a imagem: `import loginBg from '@/assets/login-bg.jpeg'`
+- Aplicar como background no div container usando `style={{ backgroundImage: url(...) }}` com `bg-cover bg-center`
+- Adicionar um overlay semi-transparente escuro (`bg-black/40`) para garantir contraste com o card branco
 
