@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { useAppUsers, useUpdateUserRole } from '@/hooks/useAppUsers';
+import { useAppUsers, useUpdateUser } from '@/hooks/useAppUsers';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UsersRound, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { UsersRound, Pencil } from 'lucide-react';
+import { AppProfile } from '@/context/AuthContext';
 
 const roleOptions = [
   { value: 'nenhum', label: 'Pendente' },
@@ -20,17 +26,42 @@ const roleBadgeColors: Record<string, string> = {
   nenhum: 'bg-gray-500/15 text-gray-500',
 };
 
+const softwareOptions = ['Morita', 'Axel'];
+
 export default function Usuarios() {
   const { data: users, isLoading } = useAppUsers();
   const { data: clients } = useSupabaseClients();
-  const updateRole = useUpdateUserRole();
+  const updateUser = useUpdateUser();
 
-  const handleRoleChange = (userId: number, newRole: string) => {
-    updateRole.mutate({ userId, papel: newRole });
+  const [editingUser, setEditingUser] = useState<AppProfile | null>(null);
+  const [formNome, setFormNome] = useState('');
+  const [formPapel, setFormPapel] = useState('');
+  const [formClienteId, setFormClienteId] = useState<string>('');
+  const [formSoftwares, setFormSoftwares] = useState<string[]>([]);
+
+  const openEdit = (user: AppProfile) => {
+    setEditingUser(user);
+    setFormNome(user.nome);
+    setFormPapel(user.papel);
+    setFormClienteId(String(user.cliente_id ?? ''));
+    setFormSoftwares(user.softwares ?? []);
   };
 
-  const handleClientChange = (userId: number, clientId: string) => {
-    updateRole.mutate({ userId, papel: 'cliente', cliente_id: clientId ? Number(clientId) : null });
+  const handleSave = () => {
+    if (!editingUser) return;
+    updateUser.mutate({
+      userId: editingUser.id,
+      nome: formNome,
+      papel: formPapel,
+      cliente_id: formPapel === 'cliente' && formClienteId ? Number(formClienteId) : null,
+      softwares: formPapel === 'radiologista' ? formSoftwares : null,
+    }, {
+      onSuccess: () => setEditingUser(null),
+    });
+  };
+
+  const toggleSoftware = (sw: string) => {
+    setFormSoftwares(prev => prev.includes(sw) ? prev.filter(s => s !== sw) : [...prev, sw]);
   };
 
   if (isLoading) {
@@ -73,34 +104,90 @@ export default function Usuarios() {
                   <Badge className={roleBadgeColors[u.papel] ?? roleBadgeColors.nenhum}>
                     {roleOptions.find(r => r.value === u.papel)?.label ?? u.papel}
                   </Badge>
-                  <Select value={u.papel} onValueChange={v => handleRoleChange(u.id, v)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.map(r => (
-                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {u.papel === 'cliente' && (
-                    <Select value={String(u.cliente_id ?? '')} onValueChange={v => handleClientChange(u.id, v)}>
-                      <SelectTrigger className="w-44">
-                        <SelectValue placeholder="Vincular cliente..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients?.map(c => (
-                          <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {u.papel === 'cliente' && u.cliente_id && (
+                    <Badge variant="outline" className="text-xs">
+                      {clients?.find(c => c.id === u.cliente_id)?.nome ?? 'Cliente'}
+                    </Badge>
                   )}
+                  {u.papel === 'radiologista' && u.softwares && u.softwares.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {u.softwares.join(', ')}
+                    </Badge>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(u)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <Dialog open={!!editingUser} onOpenChange={open => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>Altere as informações do usuário abaixo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-nome">Nome</Label>
+              <Input id="edit-nome" value={formNome} onChange={e => setFormNome(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Papel</Label>
+              <Select value={formPapel} onValueChange={setFormPapel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map(r => (
+                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {formPapel === 'cliente' && (
+              <div className="space-y-2">
+                <Label>Cliente vinculado</Label>
+                <Select value={formClienteId} onValueChange={setFormClienteId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients?.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {formPapel === 'radiologista' && (
+              <div className="space-y-2">
+                <Label>Softwares</Label>
+                <div className="flex gap-4">
+                  {softwareOptions.map(sw => (
+                    <label key={sw} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={formSoftwares.includes(sw)}
+                        onCheckedChange={() => toggleSoftware(sw)}
+                      />
+                      <span className="text-sm">{sw}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={updateUser.isPending}>
+              {updateUser.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

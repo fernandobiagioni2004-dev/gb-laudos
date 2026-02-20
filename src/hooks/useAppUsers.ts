@@ -14,11 +14,13 @@ export function useAppUsers() {
   });
 }
 
-export function useUpdateUserRole() {
+export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, papel, cliente_id, softwares }: { userId: number; papel: string; cliente_id?: number | null; softwares?: string[] | null }) => {
-      const update: any = { papel };
+    mutationFn: async ({ userId, nome, papel, cliente_id, softwares }: { userId: number; nome?: string; papel?: string; cliente_id?: number | null; softwares?: string[] | null }) => {
+      const update: any = {};
+      if (nome !== undefined) update.nome = nome;
+      if (papel !== undefined) update.papel = papel;
       if (cliente_id !== undefined) update.cliente_id = cliente_id;
       if (softwares !== undefined) update.softwares = softwares;
       const { error } = await supabase.from('app_users').update(update).eq('id', userId);
@@ -27,7 +29,10 @@ export function useUpdateUserRole() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['app_users'] });
       qc.invalidateQueries({ queryKey: ['radiologists'] });
-      toast({ title: '✅ Papel atualizado!' });
+      toast({ title: '✅ Usuário atualizado!' });
     },
   });
 }
+
+/** @deprecated Use useUpdateUser instead */
+export const useUpdateUserRole = useUpdateUser;
