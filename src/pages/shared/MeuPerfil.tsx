@@ -1,20 +1,24 @@
-import { useApp } from '@/context/AppContext';
-import { radiologists } from '@/data/mockData';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Monitor, Shield } from 'lucide-react';
-import { Role } from '@/data/mockData';
-
-const SIMULATED_RAD = radiologists[0];
-
-const profileData: Record<Role, { name: string; email: string; role: string; extra?: string }> = {
-  admin: { name: 'Admin Geral', email: 'admin@laudos.com', role: 'Administrador', extra: 'Acesso total ao sistema' },
-  radiologista: { name: SIMULATED_RAD.name, email: SIMULATED_RAD.email, role: 'Radiologista', extra: SIMULATED_RAD.software.join(', ') },
-  externo: { name: 'Usuário Clínica OralMax', email: 'contato@oralmax.com.br', role: 'Usuário Externo', extra: 'Clínica OralMax' },
-};
 
 export default function MeuPerfil() {
-  const { role } = useApp();
-  const profile = profileData[role];
+  const { profile, role } = useAuth();
+
+  const roleLabels: Record<string, string> = {
+    admin: 'Administrador',
+    radiologista: 'Radiologista',
+    cliente: 'Cliente',
+    nenhum: 'Pendente',
+  };
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-xl">
@@ -25,31 +29,23 @@ export default function MeuPerfil() {
 
       <div className="flex items-center gap-5">
         <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">
-          {profile.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+          {profile.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
         </div>
         <div>
-          <h2 className="text-lg font-semibold">{profile.name}</h2>
-          <p className="text-sm text-muted-foreground">{profile.role}</p>
+          <h2 className="text-lg font-semibold">{profile.nome}</h2>
+          <p className="text-sm text-muted-foreground">{roleLabels[role] ?? role}</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Informações Pessoais</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Informações Pessoais</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <ProfileField icon={User} label="Nome" value={profile.name} />
-          <ProfileField icon={Mail} label="E-mail" value={profile.email} />
-          <ProfileField icon={Shield} label="Perfil" value={profile.role} />
-          {profile.extra && (
-            <ProfileField icon={Monitor} label={role === 'radiologista' ? 'Softwares' : 'Clínica'} value={profile.extra} />
+          <ProfileField icon={User} label="Nome" value={profile.nome} />
+          <ProfileField icon={Mail} label="E-mail" value={profile.email ?? '—'} />
+          <ProfileField icon={Shield} label="Perfil" value={roleLabels[role] ?? role} />
+          {role === 'radiologista' && profile.softwares && profile.softwares.length > 0 && (
+            <ProfileField icon={Monitor} label="Softwares" value={profile.softwares.join(', ')} />
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="border-muted/50 bg-muted/10">
-        <CardContent className="p-4 text-xs text-muted-foreground text-center">
-          Plataforma de Laudos v1.0 — Dados simulados para demonstração
         </CardContent>
       </Card>
     </div>

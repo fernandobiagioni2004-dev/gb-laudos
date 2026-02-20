@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import { clients, examTypes, radiologists, getPricing, pricing, PricingEntry } from '@/data/mockData';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
+import { useExamTypes } from '@/hooks/useExamTypes';
+import { useRadiologists } from '@/hooks/useRadiologists';
+import { usePricingClients, usePricingRadiologist, useUpsertPriceClient, useUpsertPriceRadiologist } from '@/hooks/usePricing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -13,44 +16,48 @@ function fmt(n: number) {
 }
 
 export default function TabelasPreco() {
+  const { data: clients = [] } = useSupabaseClients();
+  const { data: examTypes = [] } = useExamTypes();
+  const { data: rads = [] } = useRadiologists();
+  const { data: priceClients = [] } = usePricingClients();
+  const { data: priceRads = [] } = usePricingRadiologist();
+  const upsertPC = useUpsertPriceClient();
+  const upsertPR = useUpsertPriceRadiologist();
+
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedExamType, setSelectedExamType] = useState('');
-  const [localPricing, setLocalPricing] = useState<PricingEntry[]>(pricing);
   const [clientValue, setClientValue] = useState('');
   const [radValues, setRadValues] = useState<Record<string, string>>({});
 
   const entry = useMemo(() => {
     if (!selectedClient || !selectedExamType) return null;
-    return localPricing.find(p => p.clientId === selectedClient && p.examTypeId === selectedExamType);
-  }, [localPricing, selectedClient, selectedExamType]);
+    return priceClients.find(p => p.client_id === Number(selectedClient) && p.exam_type_id === Number(selectedExamType));
+  }, [priceClients, selectedClient, selectedExamType]);
 
-  // Load entry values when selection changes
   useMemo(() => {
     if (entry) {
-      setClientValue(String(entry.clientValue));
+      setClientValue(String(entry.valor_cliente));
       const rv: Record<string, string> = {};
-      radiologists.forEach(r => { rv[r.id] = String(entry.radiologistValues[r.id] ?? ''); });
+      rads.forEach(r => {
+        const pr = priceRads.find(p => p.client_id === Number(selectedClient) && p.exam_type_id === Number(selectedExamType) && p.radiologista_id === r.id);
+        rv[String(r.id)] = pr ? String(pr.valor_radiologista) : '';
+      });
       setRadValues(rv);
     } else {
       setClientValue('');
       setRadValues({});
     }
-  }, [entry]);
+  }, [entry, rads, priceRads, selectedClient, selectedExamType]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const cv = parseFloat(clientValue) || 0;
-    const rvMap: Record<string, number> = {};
-    Object.entries(radValues).forEach(([id, v]) => { rvMap[id] = parseFloat(v) || 0; });
-    setLocalPricing(prev => {
-      const idx = prev.findIndex(p => p.clientId === selectedClient && p.examTypeId === selectedExamType);
-      const newEntry: PricingEntry = { clientId: selectedClient, examTypeId: selectedExamType, clientValue: cv, radiologistValues: rvMap };
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = newEntry;
-        return updated;
+    await upsertPC.mutateAsync({ client_id: Number(selectedClient), exam_type_id: Number(selectedExamType), valor_cliente: cv });
+    for (const r of rads) {
+      const v = parseFloat(radValues[String(r.id)]) || 0;
+      if (v > 0) {
+        await upsertPR.mutateAsync({ client_id: Number(selectedClient), exam_type_id: Number(selectedExamType), radiologista_id: r.id, valor_radiologista: v });
       }
-      return [...prev, newEntry];
-    });
+    }
     toast({ title: '✅ Tabela salva', description: 'Valores atualizados com sucesso.' });
   };
 
@@ -71,7 +78,7 @@ export default function TabelasPreco() {
               <Select value={selectedClient} onValueChange={setSelectedClient}>
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                 <SelectContent>
-                  {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  {clients.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -80,7 +87,7 @@ export default function TabelasPreco() {
               <Select value={selectedExamType} onValueChange={setSelectedExamType}>
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                 <SelectContent>
-                  {examTypes.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                  {examTypes.map(t => <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -92,56 +99,41 @@ export default function TabelasPreco() {
                 <Label>Valor Cliente (R$)</Label>
                 <Input type="number" placeholder="0,00" value={clientValue} onChange={e => setClientValue(e.target.value)} />
               </div>
-
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Valores por Radiologista</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Valores por Radiologista</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
-                  {radiologists.map(r => (
+                  {rads.map(r => (
                     <div key={r.id} className="flex items-center gap-3">
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{r.name}</p>
-                        <p className="text-xs text-muted-foreground">{r.software.join(', ')}</p>
+                        <p className="text-sm font-medium">{r.nome}</p>
+                        <p className="text-xs text-muted-foreground">{r.softwares?.join(', ')}</p>
                       </div>
                       <div className="w-32">
-                        <Input
-                          type="number"
-                          placeholder="0,00"
-                          value={radValues[r.id] ?? ''}
-                          onChange={e => setRadValues(prev => ({ ...prev, [r.id]: e.target.value }))}
-                          className="text-right"
-                        />
+                        <Input type="number" placeholder="0,00" value={radValues[String(r.id)] ?? ''} onChange={e => setRadValues(prev => ({ ...prev, [String(r.id)]: e.target.value }))} className="text-right" />
                       </div>
                       <div className="w-24 text-right">
-                        {radValues[r.id] && cv > 0 && (
-                          <span className="text-xs text-blue-400">
-                            margem: {fmt(cv - (parseFloat(radValues[r.id]) || 0))}
-                          </span>
+                        {radValues[String(r.id)] && cv > 0 && (
+                          <span className="text-xs text-blue-400">margem: {fmt(cv - (parseFloat(radValues[String(r.id)]) || 0))}</span>
                         )}
                       </div>
                     </div>
                   ))}
                 </CardContent>
               </Card>
-
               <Button className="w-full" onClick={handleSave}>Salvar Tabela</Button>
             </>
           )}
 
-          {!selectedClient || !selectedExamType ? (
+          {(!selectedClient || !selectedExamType) && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
               <TrendingUp className="h-8 w-8 opacity-20" />
               <p className="text-sm">Selecione um cliente e tipo de exame</p>
             </div>
-          ) : null}
+          )}
         </div>
 
-        {/* Preview table */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Matriz de Preços Atual</CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Matriz de Preços Atual</CardTitle></CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -149,22 +141,17 @@ export default function TabelasPreco() {
                   <tr className="border-b border-border text-muted-foreground">
                     <th className="text-left py-2 pr-3">Cliente</th>
                     <th className="text-left py-2 pr-3">Exame</th>
-                    <th className="text-right py-2 pr-3">Vlr. Cliente</th>
-                    <th className="text-right py-2">Vlr. Mín. Rad.</th>
+                    <th className="text-right py-2">Vlr. Cliente</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {localPricing.map((p, i) => {
-                    const minRad = Math.min(...Object.values(p.radiologistValues));
-                    return (
-                      <tr key={i} className="border-b border-border/40 hover:bg-muted/20">
-                        <td className="py-2 pr-3">{clients.find(c => c.id === p.clientId)?.name}</td>
-                        <td className="py-2 pr-3">{examTypes.find(e => e.id === p.examTypeId)?.name}</td>
-                        <td className="py-2 pr-3 text-right text-emerald-400">{fmt(p.clientValue)}</td>
-                        <td className="py-2 text-right text-amber-400">{fmt(minRad)}</td>
-                      </tr>
-                    );
-                  })}
+                  {priceClients.map((p, i) => (
+                    <tr key={i} className="border-b border-border/40 hover:bg-muted/20">
+                      <td className="py-2 pr-3">{clients.find(c => c.id === p.client_id)?.nome}</td>
+                      <td className="py-2 pr-3">{examTypes.find(e => e.id === p.exam_type_id)?.nome}</td>
+                      <td className="py-2 text-right text-emerald-400">{fmt(p.valor_cliente)}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

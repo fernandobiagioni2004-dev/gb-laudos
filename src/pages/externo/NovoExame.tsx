@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
-import { useApp } from '@/context/AppContext';
-import { examTypes, calcValues, Exam, ExamCategory } from '@/data/mockData';
+import { useCreateExam } from '@/hooks/useExams';
+import { useExamTypes } from '@/hooks/useExamTypes';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,22 +13,21 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { PlusCircle, Upload, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-// Simulating as OralMax client
-const SIMULATED_CLIENT_ID = 'c1';
-
-function generateId(): string {
-  return 'EX' + String(Math.floor(Math.random() * 900) + 100);
-}
-
 export default function NovoExame() {
-  const { addExam, clients } = useApp();
-  const simClient = clients.find(c => c.id === SIMULATED_CLIENT_ID);
+  const { profile } = useAuth();
+  const { data: examTypes = [] } = useExamTypes();
+  const { data: clients = [] } = useSupabaseClients();
+  const createExam = useCreateExam();
+
+  const clienteId = profile?.cliente_id;
+  const simClient = clients.find(c => c.id === clienteId);
+
   const [form, setForm] = useState({
     patientName: '',
     patientBirthDate: '',
     dentistName: '',
     examDate: '',
-    examCategory: '' as ExamCategory | '',
+    examCategory: '' as 'radiografia' | 'tomografia' | '',
     examTypeId: '',
     observations: '',
     purpose: '',
@@ -39,10 +40,10 @@ export default function NovoExame() {
   const [submitted, setSubmitted] = useState(false);
 
   const filteredExamTypes = form.examCategory
-    ? examTypes.filter(t => t.category === form.examCategory)
+    ? examTypes.filter(t => t.categoria === form.examCategory)
     : [];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.patientName || !form.patientBirthDate || !form.dentistName || !form.examDate || !form.examCategory || !form.examTypeId) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
@@ -51,37 +52,28 @@ export default function NovoExame() {
       toast({ title: 'Informe a data e o horário desejados para o exame urgente', variant: 'destructive' });
       return;
     }
-    const today = new Date().toISOString().split('T')[0];
-    const { clientValue } = calcValues(SIMULATED_CLIENT_ID, form.examTypeId, null);
-    const id = generateId();
-    const newExam: Exam = {
-      id,
-      clientId: SIMULATED_CLIENT_ID,
-      patientName: form.patientName,
-      patientBirthDate: form.patientBirthDate,
-      examTypeId: form.examTypeId,
-      examCategory: form.examCategory as ExamCategory,
-      software: simClient?.software?.[0] ?? 'Axel',
-      radiologistId: null,
-      status: 'Disponível',
-      clientValue,
-      radiologistValue: 0,
-      margin: clientValue,
-      observations: form.observations,
-      createdAt: today,
-      statusHistory: [{ status: 'Disponível', date: today, by: 'Portal Cliente' }],
-      files: [],
-      uploadedFile: selectedFile?.name,
-      urgent: form.urgent,
-      urgentDate: form.urgent ? form.urgentDate : undefined,
-      urgentTime: form.urgent ? form.urgentTime : undefined,
-      dentistName: form.dentistName,
-      purpose: form.purpose,
-      examDate: form.examDate,
-    };
-    addExam(newExam);
-    setSubmitted(true);
-    toast({ title: '✅ Exame enviado!', description: `Exame ${id} criado com sucesso. Um radiologista irá assumir em breve.` });
+
+    try {
+      await createExam.mutateAsync({
+        client_id: clienteId!,
+        exam_type_id: Number(form.examTypeId),
+        paciente_nome: form.patientName,
+        paciente_data_nascimento: form.patientBirthDate,
+        software: (simClient?.softwares?.[0] ?? 'Axel') as any,
+        status: 'Disponível' as any,
+        observacoes: form.observations,
+        urgente: form.urgent,
+        urgente_data: form.urgent ? form.urgentDate : null,
+        urgente_hora: form.urgent ? form.urgentTime : null,
+        dentista_nome: form.dentistName,
+        finalidade: form.purpose,
+        data_exame: form.examDate,
+        arquivo_enviado: selectedFile?.name ?? null,
+      });
+      setSubmitted(true);
+    } catch {
+      toast({ title: 'Erro ao criar exame', variant: 'destructive' });
+    }
   };
 
   const handleNew = () => {
@@ -100,12 +92,8 @@ export default function NovoExame() {
         <h2 className="text-xl font-bold">Exame Enviado com Sucesso!</h2>
         <p className="text-muted-foreground text-sm text-center max-w-sm">
           Seu exame foi registrado e está disponível para ser assumido por um radiologista.
-          Acompanhe o status em <strong>Meus Exames</strong>.
         </p>
-        <Button onClick={handleNew} className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Enviar Novo Exame
-        </Button>
+        <Button onClick={handleNew} className="gap-2"><PlusCircle className="h-4 w-4" />Enviar Novo Exame</Button>
       </div>
     );
   }
@@ -114,223 +102,88 @@ export default function NovoExame() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold">Novo Exame</h1>
-        <p className="text-sm text-muted-foreground">Solicitando como: {simClient?.name}</p>
+        <p className="text-sm text-muted-foreground">Solicitando como: {simClient?.nome ?? 'Carregando...'}</p>
       </div>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Dados do Paciente</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Dados do Paciente</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 space-y-1.5">
-              <Label>Nome do Paciente *</Label>
-              <Input
-                placeholder="Nome completo"
-                value={form.patientName}
-                onChange={e => setForm(f => ({ ...f, patientName: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Data de Nascimento *</Label>
-              <Input
-                type="date"
-                value={form.patientBirthDate}
-                onChange={e => setForm(f => ({ ...f, patientBirthDate: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Nome do Dentista Solicitante *</Label>
-              <Input
-                placeholder="Nome do dentista"
-                value={form.dentistName}
-                onChange={e => setForm(f => ({ ...f, dentistName: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Data do Exame *</Label>
-              <Input
-                type="date"
-                value={form.examDate}
-                onChange={e => setForm(f => ({ ...f, examDate: e.target.value }))}
-              />
-            </div>
+            <div className="col-span-2 space-y-1.5"><Label>Nome do Paciente *</Label><Input placeholder="Nome completo" value={form.patientName} onChange={e => setForm(f => ({ ...f, patientName: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Data de Nascimento *</Label><Input type="date" value={form.patientBirthDate} onChange={e => setForm(f => ({ ...f, patientBirthDate: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Nome do Dentista *</Label><Input placeholder="Nome do dentista" value={form.dentistName} onChange={e => setForm(f => ({ ...f, dentistName: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Data do Exame *</Label><Input type="date" value={form.examDate} onChange={e => setForm(f => ({ ...f, examDate: e.target.value }))} /></div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Dados do Exame</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Dados do Exame</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Categoria do Exame *</Label>
-              <Select
-                value={form.examCategory}
-                onValueChange={v => setForm(f => ({ ...f, examCategory: v as ExamCategory, examTypeId: '' }))}
-              >
+            <div className="space-y-1.5"><Label>Categoria *</Label>
+              <Select value={form.examCategory} onValueChange={v => setForm(f => ({ ...f, examCategory: v as any, examTypeId: '' }))}>
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="radiografia">Radiografia</SelectItem>
-                  <SelectItem value="tomografia">Tomografia</SelectItem>
-                </SelectContent>
+                <SelectContent><SelectItem value="radiografia">Radiografia</SelectItem><SelectItem value="tomografia">Tomografia</SelectItem></SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Exame *</Label>
-              <Select
-                value={form.examTypeId}
-                onValueChange={v => setForm(f => ({ ...f, examTypeId: v }))}
-                disabled={!form.examCategory}
-              >
-                <SelectTrigger><SelectValue placeholder={form.examCategory ? 'Selecionar...' : 'Escolha a categoria primeiro'} /></SelectTrigger>
-                <SelectContent>
-                  {filteredExamTypes.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                </SelectContent>
+            <div className="space-y-1.5"><Label>Tipo *</Label>
+              <Select value={form.examTypeId} onValueChange={v => setForm(f => ({ ...f, examTypeId: v }))} disabled={!form.examCategory}>
+                <SelectTrigger><SelectValue placeholder={form.examCategory ? 'Selecionar...' : 'Escolha a categoria'} /></SelectTrigger>
+                <SelectContent>{filteredExamTypes.map(t => <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Finalidade do Exame</Label>
-            <Input
-              placeholder="Ex: Implante, Ortodontia, Avaliação de cisto..."
-              value={form.purpose}
-              onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}
-            />
-          </div>
+          <div className="space-y-1.5"><Label>Finalidade</Label><Input placeholder="Ex: Implante, Ortodontia..." value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} /></div>
         </CardContent>
       </Card>
 
-      {/* Urgência */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Urgência</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Urgência</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <Label htmlFor="urgent-switch" className="cursor-pointer">Marcar como urgente</Label>
-            </div>
-            <Switch
-              id="urgent-switch"
-              checked={form.urgent}
-              onCheckedChange={v => setForm(f => ({ ...f, urgent: v, urgentDate: v ? f.urgentDate : '', urgentTime: v ? f.urgentTime : '' }))}
-            />
+            <div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-500" /><Label htmlFor="urgent-switch" className="cursor-pointer">Marcar como urgente</Label></div>
+            <Switch id="urgent-switch" checked={form.urgent} onCheckedChange={v => setForm(f => ({ ...f, urgent: v, urgentDate: v ? f.urgentDate : '', urgentTime: v ? f.urgentTime : '' }))} />
           </div>
           {form.urgent && (
             <div className="space-y-1.5 border-l-2 border-amber-500/50 pl-4 animate-in slide-in-from-top-2">
-              <Label>Para quando você precisa do exame? *</Label>
+              <Label>Para quando? *</Label>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Data</Label>
-                  <Input
-                    type="date"
-                    value={form.urgentDate}
-                    onChange={e => setForm(f => ({ ...f, urgentDate: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Horário</Label>
-                  <Input
-                    type="time"
-                    value={form.urgentTime}
-                    onChange={e => setForm(f => ({ ...f, urgentTime: e.target.value }))}
-                  />
-                </div>
+                <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Data</Label><Input type="date" value={form.urgentDate} onChange={e => setForm(f => ({ ...f, urgentDate: e.target.value }))} /></div>
+                <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Horário</Label><Input type="time" value={form.urgentTime} onChange={e => setForm(f => ({ ...f, urgentTime: e.target.value }))} /></div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Informe a data e o horário desejados para priorização do laudo.
-              </p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Observações */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Observações</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            placeholder="Informações adicionais, queixa principal..."
-            value={form.observations}
-            onChange={e => setForm(f => ({ ...f, observations: e.target.value }))}
-            rows={3}
-          />
-        </CardContent>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Observações</CardTitle></CardHeader>
+        <CardContent><Textarea placeholder="Informações adicionais..." value={form.observations} onChange={e => setForm(f => ({ ...f, observations: e.target.value }))} rows={3} /></CardContent>
       </Card>
 
-      {/* File upload */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Arquivos do Exame</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Arquivos do Exame</CardTitle></CardHeader>
         <CardContent>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".zip"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (!file.name.toLowerCase().endsWith('.zip')) {
-                toast({ title: 'Formato inválido', description: 'Apenas arquivos .zip são aceitos.', variant: 'destructive' });
-                e.target.value = '';
-                return;
-              }
-              if (file.size > 1 * 1024 * 1024 * 1024) {
-                toast({ title: 'Arquivo muito grande', description: 'O tamanho máximo é 1GB.', variant: 'destructive' });
-                e.target.value = '';
-                return;
-              }
-              setSelectedFile(file);
-            }}
-          />
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-border hover:border-primary/50'
-            }`}
-            onClick={() => !selectedFile && fileInputRef.current?.click()}
-          >
+          <input ref={fileInputRef} type="file" accept=".zip" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) setSelectedFile(file); }} />
+          <div className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-border hover:border-primary/50'}`} onClick={() => !selectedFile && fileInputRef.current?.click()}>
             {selectedFile ? (
               <div className="text-emerald-600">
                 <CheckCircle2 className="h-6 w-6 mx-auto mb-2" />
-                <p className="text-sm font-medium">
-                  {selectedFile.name} — {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(null);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                >
-                  <X className="h-4 w-4 mr-1" /> Remover arquivo
+                <p className="text-sm font-medium">{selectedFile.name} — {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</p>
+                <Button type="button" variant="ghost" size="sm" className="mt-2 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                  <X className="h-4 w-4 mr-1" /> Remover
                 </Button>
               </div>
             ) : (
-              <div className="text-muted-foreground">
-                <Upload className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Clique para fazer upload</p>
-                <p className="text-xs mt-1">Arquivos ZIP — até 1GB</p>
-              </div>
+              <div className="text-muted-foreground"><Upload className="h-6 w-6 mx-auto mb-2 opacity-50" /><p className="text-sm">Clique para upload</p><p className="text-xs mt-1">ZIP — até 1GB</p></div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <Button size="lg" className="w-full gap-2" onClick={handleSubmit}>
-        <PlusCircle className="h-4 w-4" />
-        Enviar Exame
+      <Button size="lg" className="w-full gap-2" onClick={handleSubmit} disabled={createExam.isPending}>
+        <PlusCircle className="h-4 w-4" />{createExam.isPending ? 'Enviando...' : 'Enviar Exame'}
       </Button>
     </div>
   );

@@ -3,8 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
 import { AppProvider, useApp } from "@/context/AppContext";
 import { Layout } from "@/components/Layout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+// Auth
+import Auth from "@/pages/Auth";
 
 // Admin pages
 import Dashboard from "@/pages/admin/Dashboard";
@@ -13,6 +18,7 @@ import Clientes from "@/pages/admin/Clientes";
 import Radiologistas from "@/pages/admin/Radiologistas";
 import TabelasPreco from "@/pages/admin/TabelasPreco";
 import Relatorios from "@/pages/admin/Relatorios";
+import Usuarios from "@/pages/admin/Usuarios";
 
 // Radiologist pages
 import ExamesDisponiveis from "@/pages/radiologista/ExamesDisponiveis";
@@ -43,6 +49,7 @@ function AppRoutes() {
             <Route path="/exames" element={<Exames />} />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/radiologistas" element={<Radiologistas />} />
+            <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/tabelas-preco" element={<TabelasPreco />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/calendario" element={<Calendario />} />
@@ -60,8 +67,8 @@ function AppRoutes() {
           </>
         )}
 
-        {/* External user routes */}
-        {role === 'externo' && (
+        {/* Client routes */}
+        {role === 'cliente' && (
           <>
             <Route path="/" element={<Navigate to="/novo-exame" replace />} />
             <Route path="/novo-exame" element={<NovoExame />} />
@@ -84,9 +91,18 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppProvider>
-            <AppRoutes />
-          </AppProvider>
+          <AuthProvider>
+            <AppProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <AppRoutes />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </AppProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
