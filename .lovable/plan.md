@@ -1,46 +1,26 @@
 
 
-## Indicador de Urgencia na tela Exames Disponiveis
+## Tornar o Card inteiro clicavel para abrir detalhes
 
 ### Resumo
 
-Adicionar badge "URGENTE" pulsante nos cards de exames disponiveis que possuem flag de urgencia, e ordenar exames urgentes primeiro na lista. Tambem adicionar 1-2 exames "Disponivel" com flag urgente no mock data para que o indicador seja visivel nesta tela.
+Atualmente, apenas o nome do paciente e clicavel para abrir o dialog de detalhes. A mudanca fara com que clicar em qualquer lugar do card abra o dialog, tornando a interacao mais intuitiva.
 
-### Alteracoes por arquivo
+### Alteracoes em `src/pages/radiologista/MeusExames.tsx`
 
-#### 1. `src/data/mockData.ts`
+#### 1. Cards "Em Analise" (linha ~98)
+- Adicionar `onClick={() => setDetailId(e.id)}` e `cursor-pointer` no elemento `<Card>`
+- Manter o botao "Finalizar Laudo" com `e.stopPropagation()` para que ele nao abra o dialog ao ser clicado
 
-- Marcar 1-2 exames com status "Disponivel" como urgentes para testar na tela:
-  - EX015 (Marcos Ribeiro): `urgent: true, urgentDate: '2026-02-17', urgentTime: '14:00'`
-  - EX017 (Felipe Araujo): `urgent: true, urgentDate: '2026-02-19', urgentTime: '09:00'`
+#### 2. Cards "Finalizados" (linha ~137)
+- Adicionar `onClick={() => setDetailId(e.id)}` e `cursor-pointer` no elemento `<Card>`
 
-#### 2. `src/pages/radiologista/ExamesDisponiveis.tsx`
+#### 3. Componente PatientNameLink (linha ~50-58)
+- Pode ser simplificado para um `<span>` sem handler de click proprio, ja que o card inteiro agora abre o dialog
+- Manter o estilo visual (font-semibold) mas remover hover:underline e o onClick, pois o card ja cuida disso
 
-- Importar `AlertTriangle` de lucide-react
-- No `useMemo`, apos filtrar, ordenar exames urgentes primeiro (`.sort((a,b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0))`)
-- No card de cada exame, se `e.urgent === true`:
-  - Adicionar badge vermelho pulsante com icone `AlertTriangle` e texto "URGENTE" entre o cabecalho e a info do tipo de exame
-  - Se houver `urgentDate`/`urgentTime`, exibir "Prazo: dd/mm/aaaa as HH:MM" abaixo do badge
-  - Adicionar borda vermelha sutil no card (`border-red-500/40`)
+### Resultado esperado
 
-### Visual do card urgente
-
-```text
-+------------------------------------------+
-| EX015              [Disponivel]          |
-| Marcos Ribeiro                           |
-| Centro de Imagem Dental                  |
-|                                          |
-| [!] URGENTE   Prazo: 17/02/2026 as 14:00|
-|                                          |
-| Tomografia   [Morita]                    |
-| Solicitado em 15/02/2026                 |
-| [      Assumir Exame      ]             |
-+------------------------------------------+
-```
-
-### Detalhes tecnicos
-
-- Reutilizar o mesmo estilo de badge pulsante ja implementado em MeusExames.tsx (`animate-pulse bg-red-500/15 text-red-400`)
-- Nenhuma nova dependencia necessaria
+- Clicar em qualquer area do card abre o dialog de detalhes
+- O botao "Finalizar Laudo" continua funcionando normalmente sem abrir o dialog
 
