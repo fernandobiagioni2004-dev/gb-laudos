@@ -1,43 +1,43 @@
 
+## Exibir finalidade, dentista e arquivo corretamente nos Meus Exames (Externo)
 
-## Filtros por status e data em formato brasileiro - Meus Exames (Externo)
+### Problema identificado
 
-### Resumo
+O formulario "Novo Exame" coleta os campos `dentistName` (nome do dentista), `purpose` (finalidade) e `examDate` (data do exame), mas esses dados nao sao salvos no objeto do exame. Alem disso, o nome do arquivo selecionado tambem nao e armazenado. Por fim, a tela de Meus Exames do usuario externo nao possui um dialog de detalhes ao clicar no card.
 
-Adicionar filtros por status (Todos, Disponivel, Em analise, Finalizado, Cancelado) usando Tabs na tela de Meus Exames do usuario externo, e converter a data de `YYYY-MM-DD` para o formato brasileiro `DD/MM/YYYY`.
+### Alteracoes necessarias
 
-### Alteracoes em `src/pages/externo/MeusExames.tsx`
+#### 1. Adicionar campos na interface `Exam` (`src/data/mockData.ts`)
 
-#### 1. Filtro por status com Tabs
-- Importar `Tabs, TabsList, TabsTrigger, TabsContent` de `@/components/ui/tabs`
-- Adicionar estado `activeFilter` com valor padrao `'all'`
-- Criar tabs: "Todos", "Disponivel", "Em analise", "Finalizado", "Cancelado"
-- Cada tab exibe a contagem de exames naquele status (ex: "Finalizados (3)")
-- Filtrar a lista `myExams` de acordo com o tab selecionado
+- Adicionar `dentistName?: string` para o nome do dentista solicitante
+- Adicionar `purpose?: string` para a finalidade do exame
+- Adicionar `examDate?: string` para a data do exame
+- Adicionar valores simulados nos exames mock existentes para que tenham dados visiveis
 
-#### 2. Data no formato brasileiro
-- Criar funcao auxiliar `formatDateBR(dateStr)` que converte `2026-02-01` para `01/02/2026`
-- Substituir a exibicao de `e.createdAt` pela versao formatada na linha de detalhes do card
+#### 2. Salvar os novos campos ao criar exame (`src/pages/externo/NovoExame.tsx`)
 
-### Detalhes tecnicos
+- No `handleSubmit`, incluir `dentistName`, `purpose` e `examDate` no objeto `newExam`
+- Salvar `selectedFile?.name` no campo `uploadedFile` para que o nome do arquivo apareca
 
-- Usar `useState` para controlar o filtro ativo
-- A filtragem sera feita com `useMemo` encadeado: primeiro filtra por cliente, depois por status
-- Funcao `formatDateBR`: split por `-`, inverte e junta com `/`
-- Nenhuma dependencia nova necessaria
+#### 3. Adicionar dialog de detalhes nos Meus Exames externo (`src/pages/externo/MeusExames.tsx`)
 
-### Visual esperado
+- Tornar o card inteiro clicavel (igual ao que foi feito no radiologista)
+- Adicionar estado `detailId` para controlar qual exame esta aberto
+- Criar um Dialog com as informacoes do exame:
+  - Paciente, Data de Nascimento
+  - Dentista Solicitante (novo campo)
+  - Finalidade do Exame (novo campo)
+  - Tipo de exame, Categoria, Software
+  - Data de criacao (formato brasileiro)
+  - Status atual
+  - Urgencia (se aplicavel)
+  - Observacoes
+  - Historico de status
+  - Arquivo enviado (com botao de download, se existir)
+  - Laudo disponivel (botao de download para exames finalizados)
+- O botao "Baixar Laudo" existente no card precisa de `e.stopPropagation()` para nao abrir o dialog ao ser clicado
 
-```text
-Meus Exames
-X exames encontrados
+#### 4. Dados mock para exames existentes
 
-[Todos (6)] [Disponiveis (2)] [Em analise (1)] [Finalizados (3)] [Cancelados (0)]
-
-+------------------------------------------------------------+
-| [icon] EX001  Joao Silva                                   |
-|        Panoramica · Axel · 01/02/2026                      |
-|                          [Finalizado] [Baixar Laudo]       |
-+------------------------------------------------------------+
-```
-
+- Adicionar `dentistName` e `purpose` na funcao `makeExam` com valores padrao opcionais
+- Adicionar valores de exemplo nos exames iniciais do cliente `c1` (OralMax) para que aparecam dados no dialog
