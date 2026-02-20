@@ -112,7 +112,7 @@ export default function Exames() {
                       <td className="py-3 px-4 whitespace-nowrap">{getExamType(e.exam_type_id)?.nome}</td>
                       <td className="py-3 px-4">
                         <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                          e.software === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
+                          e.software === 'iDixel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
                         )}>{e.software}</span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">{getRad(e.radiologista_id)?.nome ?? '—'}</td>
@@ -204,7 +204,7 @@ export default function Exames() {
           <Select value={selectedRad} onValueChange={setSelectedRad}>
             <SelectTrigger><SelectValue placeholder="Selecionar radiologista..." /></SelectTrigger>
             <SelectContent>
-              {rads.filter(r => r.softwares?.includes(assignDialog?.software ?? 'Axel')).map(r => (
+              {rads.filter(r => r.softwares?.includes(assignDialog?.software ?? 'iDixel')).map(r => (
                 <SelectItem key={r.id} value={String(r.id)}>{r.nome} ({r.softwares?.join(', ')})</SelectItem>
               ))}
             </SelectContent>

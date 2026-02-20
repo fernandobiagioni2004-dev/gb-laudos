@@ -59,7 +59,7 @@ export default function NovoExame() {
         exam_type_id: Number(form.examTypeId),
         paciente_nome: form.patientName,
         paciente_data_nascimento: form.patientBirthDate,
-        software: (simClient?.softwares?.[0] ?? 'Axel') as any,
+        software: (simClient?.softwares?.[0] ?? 'iDixel') as any,
         status: 'Disponível' as any,
         observacoes: form.observations,
         urgente: form.urgent,

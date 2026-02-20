@@ -75,7 +75,7 @@ export default function Radiologistas() {
               <div className="flex flex-wrap gap-1">
                 {(r.softwares ?? []).map(s => (
                   <span key={s} className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1',
-                    s === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
+                    s === 'iDixel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
                   )}><Monitor className="h-3 w-3" />{s}</span>
                 ))}
               </div>
