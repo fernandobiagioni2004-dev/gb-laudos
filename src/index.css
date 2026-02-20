@@ -45,14 +45,14 @@
     --status-cancelado: 0 72% 51%;
 
     /* Sidebar — roxo escuro suave */
-    --sidebar-background: 278 55% 14%;
-    --sidebar-foreground: 278 20% 80%;
-    --sidebar-primary: 278 61% 47%;
+    --sidebar-background: 278 61% 47%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 278 45% 22%;
-    --sidebar-accent-foreground: 278 15% 93%;
-    --sidebar-border: 278 35% 20%;
-    --sidebar-ring: 278 61% 47%;
+    --sidebar-accent: 278 61% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 278 50% 42%;
+    --sidebar-ring: 0 0% 100%;
   }
 }
 
