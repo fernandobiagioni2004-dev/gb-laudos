@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, CheckCircle2, XCircle, Eye, PlusCircle, MoreHorizontal, Pencil, Trash2, Monitor } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Eye, PlusCircle, MoreHorizontal, Pencil, Trash2, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function fmt(n: number) {
@@ -28,16 +28,30 @@ export default function Clientes() {
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  function changeMonth(delta: number) {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  const [sy, sm] = selectedMonth.split('-');
+  const monthLabel = new Date(+sy, +sm - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
   const rows = useMemo(() => clients.map(c => {
-    const cExams = exams.filter(e => e.clientId === c.id && e.status !== 'Cancelado');
+    const cExams = exams.filter(e => e.clientId === c.id && e.status !== 'Cancelado' && e.createdAt.startsWith(selectedMonth));
     const revenue = cExams.reduce((a, e) => a + e.clientValue, 0);
     const paid = cExams.reduce((a, e) => a + e.radiologistValue, 0);
     const margin = revenue - paid;
     return { ...c, examCount: cExams.length, revenue, paid, margin };
-  }), [exams, clients]);
+  }), [exams, clients, selectedMonth]);
 
   const detailClient = detail ? clients.find(c => c.id === detail) : null;
-  const detailExams = detail ? exams.filter(e => e.clientId === detail) : [];
+  const detailExams = detail ? exams.filter(e => e.clientId === detail && e.createdAt.startsWith(selectedMonth)) : [];
   const detailRevenue = detailExams.filter(e => e.status !== 'Cancelado').reduce((a, e) => a + e.clientValue, 0);
   const detailPaid = detailExams.filter(e => e.status !== 'Cancelado').reduce((a, e) => a + e.radiologistValue, 0);
 
@@ -81,6 +95,17 @@ export default function Clientes() {
         <Button onClick={openCreate} className="gap-2">
           <PlusCircle className="h-4 w-4" />
           Novo Cliente
+        </Button>
+      </div>
+
+      {/* Month Selector */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(-1)}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium capitalize min-w-[160px] text-center">{monthLabel}</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(1)}>
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 

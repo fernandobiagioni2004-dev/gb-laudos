@@ -2,26 +2,12 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { clients, radiologists, examTypes } from '@/data/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, DollarSign, TrendingUp, Users, Activity, Percent } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, DollarSign, TrendingUp, Users, Activity, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-
-type Period = 'hoje' | '7d' | '30d' | 'total';
-
-const periodLabels: Record<Period, string> = {
-  hoje: 'Hoje',
-  '7d': '7 dias',
-  '30d': '30 dias',
-  total: 'Total',
-};
-
-function addDays(base: Date, days: number) {
-  const d = new Date(base);
-  d.setDate(d.getDate() + days);
-  return d;
-}
 
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
@@ -29,20 +15,27 @@ function fmt(n: number) {
 
 export default function Dashboard() {
   const { exams } = useApp();
-  const [period, setPeriod] = useState<Period>('30d');
 
-  const today = new Date('2026-02-19');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  function changeMonth(delta: number) {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  const [y, m] = selectedMonth.split('-');
+  const monthLabel = new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   const filtered = useMemo(() => {
     return exams.filter(e => {
       if (e.status === 'Cancelado') return false;
-      const d = new Date(e.createdAt);
-      if (period === 'hoje') return d.toDateString() === today.toDateString();
-      if (period === '7d') return d >= addDays(today, -7);
-      if (period === '30d') return d >= addDays(today, -30);
-      return true;
+      return e.createdAt.startsWith(selectedMonth);
     });
-  }, [exams, period]);
+  }, [exams, selectedMonth]);
 
   const kpis = useMemo(() => {
     const totalExams = filtered.length;
@@ -54,20 +47,22 @@ export default function Dashboard() {
     return { totalExams, revenue, paid, margin, ticket, activeClients };
   }, [filtered]);
 
-  // Chart data: last 14 days
+  // Chart data: days in the selected month
   const chartData = useMemo(() => {
-    const days = period === 'hoje' ? 1 : period === '7d' ? 7 : 14;
-    return Array.from({ length: days }, (_, i) => {
-      const date = addDays(today, -(days - 1 - i));
-      const dateStr = date.toISOString().split('T')[0];
+    const year = +y;
+    const month = +m;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const dateStr = `${selectedMonth}-${String(day).padStart(2, '0')}`;
       const dayExams = exams.filter(e => e.createdAt === dateStr && e.status !== 'Cancelado');
       return {
-        date: `${date.getDate()}/${date.getMonth() + 1}`,
+        date: `${day}/${month}`,
         exames: dayExams.length,
         faturamento: dayExams.reduce((a, e) => a + e.clientValue, 0),
       };
     });
-  }, [exams, period]);
+  }, [exams, selectedMonth, y, m]);
 
   // Production table
   const production = useMemo(() => {
@@ -89,22 +84,15 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground">Visão geral operacional e financeira</p>
       </div>
 
-      {/* Period Filter */}
-      <div className="flex gap-2">
-        {(Object.keys(periodLabels) as Period[]).map(p => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-medium transition-all border',
-              period === p
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
-            )}
-          >
-            {periodLabels[p]}
-          </button>
-        ))}
+      {/* Month Selector */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(-1)}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium capitalize min-w-[160px] text-center">{monthLabel}</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(1)}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* KPI Cards */}
