@@ -1,53 +1,57 @@
 
 
-## Adicionar filtro de mes na aba Meu Financeiro
+## Adicionar filtro de mes nas telas do administrador
 
 ### Resumo
 
-Adicionar um seletor de mes/ano na tela Meu Financeiro do radiologista, para que ele possa visualizar quanto vai ganhar (ou ganhou) em cada mes especifico. Os cards de resumo e a tabela de historico serao filtrados pelo mes selecionado.
+Adicionar um seletor de mes/ano (igual ao do Meu Financeiro do radiologista) nas telas **Dashboard**, **Clientes** e **Radiologistas** do perfil administrador, para visualizar valores financeiros filtrados por mes.
 
 ### Alteracoes
 
-#### Arquivo unico: `src/pages/radiologista/MeuFinanceiro.tsx`
+#### 1. Dashboard (`src/pages/admin/Dashboard.tsx`)
 
-1. **Novo estado** `selectedMonth` inicializado com o mes/ano atual (ex: `2026-02`)
+- Substituir o filtro de periodo atual (Hoje / 7d / 30d / Total) por um **seletor de mes** com setas ChevronLeft/ChevronRight
+- Todos os KPIs, graficos e tabela de producao passam a filtrar pelo mes selecionado
+- O grafico mostrara os dias do mes selecionado (em vez dos ultimos 14 dias)
+- Manter a opcao "Total" como alternativa ao lado do seletor de mes
 
-2. **Seletor de mes** entre o titulo e os cards de resumo:
-   - Botoes de seta para navegar entre meses (anterior/proximo)
-   - Texto central mostrando o mes e ano formatado em portugues (ex: "Fevereiro 2026")
-   - Visual compacto e alinhado com o design existente
+#### 2. Clientes (`src/pages/admin/Clientes.tsx`)
 
-3. **Filtrar exames pelo mes selecionado**: os arrays `finalized` e `inProgress` passam a considerar apenas exames cujo `createdAt` corresponde ao mes/ano selecionado
+- Adicionar seletor de mes entre o titulo e os cards
+- Os valores nos cards (Exames, Faturado, Margem) serao filtrados pelo mes selecionado
+- No dialog de detalhes, os resumos financeiros e historico de exames tambem serao filtrados pelo mes
 
-4. **Cards de resumo atualizados**: os valores de "Total a Receber", "Em Analise (pendente)" e "Exames Finalizados" refletem apenas o mes filtrado
+#### 3. Radiologistas (`src/pages/admin/Radiologistas.tsx`)
 
-5. **Tabela de historico filtrada**: mostra apenas exames finalizados do mes selecionado
+- Adicionar seletor de mes entre o titulo e os cards
+- Os valores nos cards (Finalizados, Em Analise, A Receber) serao filtrados pelo mes selecionado
+- No dialog de detalhes, os resumos e lista de exames tambem serao filtrados pelo mes
 
 ### Detalhes tecnicos
 
-```typescript
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+Padrao reutilizado do `MeuFinanceiro.tsx`:
 
-// Estado: "2026-02" (ano-mes)
+```typescript
 const [selectedMonth, setSelectedMonth] = useState(() => {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 });
 
-// Filtro por mes
-const monthExams = myExams.filter(e => e.createdAt.startsWith(selectedMonth));
-
-// Navegacao
 function changeMonth(delta: number) {
   const [y, m] = selectedMonth.split('-').map(Number);
   const d = new Date(y, m - 1 + delta, 1);
   setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
 }
 
-// Formatacao: "Fevereiro 2026"
+const [y, m] = selectedMonth.split('-');
 const monthLabel = new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 ```
 
-O seletor sera composto por dois botoes (ChevronLeft/ChevronRight) e o nome do mes centralizado, usando os componentes Button ja existentes.
+Filtro aplicado nos arrays de exames com `e.createdAt.startsWith(selectedMonth)`.
+
+**Dashboard**: o filtro de periodo existente (hoje/7d/30d/total) sera mantido e o seletor de mes sera adicionado ao lado, funcionando como um filtro complementar. O periodo filtra dentro do mes selecionado.
+
+**Clientes e Radiologistas**: seletor de mes adicionado abaixo do titulo, com o mesmo visual compacto (botoes ghost + label capitalizado centralizado).
+
+3 arquivos alterados no total.
 
