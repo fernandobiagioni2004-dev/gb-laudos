@@ -1,86 +1,41 @@
 
 
-## Mudar tema para fundo cinza claro (Light Mode)
+## Alterar cor da sidebar para roxo escuro suave
 
 ### Resumo
 
-Trocar o tema da aplicacao de dark mode para light mode com fundo cinza claro, inspirado no print de referencia. A sidebar permanecera escura (como no exemplo, que usa sidebar roxa/escura), criando contraste com o conteudo principal claro.
+Trocar o fundo da sidebar de cinza escuro para um roxo escuro suave (tipo "deep purple" com baixa saturacao), mantendo o contraste com o conteudo principal claro. Os textos e elementos interativos da sidebar serao ajustados para combinar com o novo tom.
 
 ### Alteracoes
 
-#### 1. Variaveis CSS (`src/index.css`)
+#### Arquivo unico: `src/index.css`
 
-Atualizar todas as variaveis de cor para valores light mode:
-
-- **background**: cinza claro (~`220 14% 96%` - equivalente a `#f1f5f9`)
-- **foreground**: texto escuro (~`222 47% 11%`)
-- **card**: branco (`0 0% 100%`)
-- **card-foreground**: texto escuro
-- **popover**: branco
-- **primary**: manter azul (`217 91% 60%`) com foreground branco
-- **secondary**: cinza medio claro
-- **muted**: cinza suave
-- **muted-foreground**: cinza escuro para texto secundario
-- **border/input**: cinza claro
-- **Sidebar**: manter escura (fundo escuro, texto claro) para contraste, similar ao exemplo
-
-Remover `color-scheme: dark` e ajustar scrollbar para cores claras.
-
-#### 2. Cores de status e badges nos componentes
-
-Ajustar as cores hardcoded nos seguintes arquivos para melhor contraste no fundo claro:
-
-- **`src/components/StatusBadge.tsx`**: trocar `text-emerald-400` para `text-emerald-600`, `text-amber-400` para `text-amber-600`, etc.
-- **`src/components/DeadlineBadge.tsx`**: mesma troca de tons 400 para 600
-- **`src/components/AppSidebar.tsx`**: roleColors trocar de 400 para 600 (pois o dropdown abre fora da sidebar)
-
-#### 3. Paginas com cores hardcoded
-
-Atualizar tons de cores em todas as paginas que usam `text-*-400` para `text-*-600` (melhor legibilidade em fundo claro):
-
-- `src/pages/admin/Dashboard.tsx`
-- `src/pages/admin/Exames.tsx`
-- `src/pages/admin/Clientes.tsx`
-- `src/pages/admin/Radiologistas.tsx`
-- `src/pages/radiologista/MeuFinanceiro.tsx`
-- `src/pages/radiologista/ExamesDisponiveis.tsx`
-- `src/pages/radiologista/MeusExames.tsx`
-- `src/pages/externo/MeusExames.tsx`
-- `src/pages/externo/NovoExame.tsx`
-
-### Detalhes tecnicos
-
-Novas variaveis CSS (valores aproximados):
+Atualizar as variaveis de sidebar na linha 48-55 para tons de roxo escuro:
 
 ```css
-:root {
-  --background: 220 14% 96%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 217 91% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 13% 91%;
-  --secondary-foreground: 222 47% 20%;
-  --muted: 220 14% 92%;
-  --muted-foreground: 220 9% 46%;
-  --accent: 217 91% 60%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 220 13% 87%;
-  --input: 220 13% 87%;
-  --ring: 217 91% 60%;
-
-  /* Sidebar permanece escura */
-  --sidebar-background: 222 22% 7%;
-  --sidebar-foreground: 210 15% 75%;
-  /* ... demais sidebar vars permanecem iguais */
-}
+/* Sidebar — roxo escuro suave */
+--sidebar-background: 260 30% 12%;        /* fundo principal: roxo escuro discreto */
+--sidebar-foreground: 260 15% 75%;        /* texto: lavanda suave */
+--sidebar-primary: 260 60% 65%;           /* destaque primario: roxo medio */
+--sidebar-primary-foreground: 0 0% 100%;  /* texto sobre primario: branco */
+--sidebar-accent: 260 25% 18%;            /* hover/ativo: roxo um pouco mais claro */
+--sidebar-accent-foreground: 260 20% 92%; /* texto hover: quase branco */
+--sidebar-border: 260 20% 18%;            /* bordas: roxo escuro sutil */
+--sidebar-ring: 260 60% 65%;              /* ring de foco */
 ```
 
-Padrao de substituicao nos componentes: `text-emerald-400` vira `text-emerald-600`, `text-amber-400` vira `text-amber-600`, `text-blue-400` vira `text-blue-600`, `text-red-400` vira `text-red-600`. Backgrounds semi-transparentes (`bg-*-500/15`) podem ser mantidos ou ajustados para `bg-*-500/10`.
+Tambem atualizar o logo "PL" no `AppSidebar.tsx` para usar um tom de roxo em vez de `bg-primary` (azul), ficando mais coerente com a sidebar roxa.
 
-Total estimado: ~12 arquivos alterados.
+#### Arquivo: `src/components/AppSidebar.tsx`
+
+- Trocar `bg-primary` do logo para `bg-purple-600` (ou similar)
+- Trocar cor do item ativo de `bg-primary/15 text-primary` para `bg-purple-500/15 text-purple-300` e o dot indicador para `bg-purple-400`
+
+Isso garante que os elementos interativos da sidebar seguem o mesmo tom roxo.
+
+### Resultado esperado
+
+Sidebar com fundo roxo escuro discreto (nao vibrante), textos em tons de lavanda clara, itens ativos em roxo medio — criando uma identidade visual mais sofisticada mantendo boa legibilidade.
+
+2 arquivos alterados no total.
+
