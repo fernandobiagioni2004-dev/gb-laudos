@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useExamTypes } from '@/hooks/useExamTypes';
 import { useRadiologists } from '@/hooks/useRadiologists';
@@ -34,7 +34,7 @@ export default function TabelasPreco() {
     return priceClients.find(p => p.client_id === Number(selectedClient) && p.exam_type_id === Number(selectedExamType));
   }, [priceClients, selectedClient, selectedExamType]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (entry) {
       setClientValue(String(entry.valor_cliente));
       const rv: Record<string, string> = {};
