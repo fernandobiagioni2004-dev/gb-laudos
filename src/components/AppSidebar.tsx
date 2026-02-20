@@ -11,6 +11,7 @@ import {
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
 import { Role } from '@/data/mockData';
+import gbLaudosLogo from '@/assets/gb-laudos-logo.png';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -86,19 +87,15 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600">
-              <span className="text-xs font-bold text-white">PL</span>
-            </div>
+            <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
             <div>
-              <p className="text-sm font-semibold text-sidebar-accent-foreground">Plataforma</p>
-              <p className="text-xs text-sidebar-foreground">de Laudos</p>
+              <p className="text-sm font-semibold text-sidebar-accent-foreground">GB Laudos</p>
+              <p className="text-xs text-sidebar-foreground">Laudos Odontológicos</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600">
-              <span className="text-xs font-bold text-white">PL</span>
-            </div>
+            <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
           </div>
         )}
       </SidebarHeader>
@@ -191,7 +188,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border p-3">
         {!collapsed ? (
-          <p className="text-[10px] text-muted-foreground text-center">v1.0 — Plataforma de Laudos</p>
+          <p className="text-[10px] text-muted-foreground text-center">v1.0 — GB Laudos</p>
         ) : (
           <div className="flex justify-center">
             <LogOut className="h-3.5 w-3.5 text-muted-foreground" />
