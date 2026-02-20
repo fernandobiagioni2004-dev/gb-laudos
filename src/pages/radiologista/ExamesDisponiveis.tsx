@@ -153,12 +153,12 @@ export default function ExamesDisponiveis() {
                   </div>
                   {e.urgent && (
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse bg-red-500/15 text-red-400 border border-red-500/30">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse bg-red-500/15 text-red-600 border border-red-500/30">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         URGENTE
                       </span>
                       {e.urgentDate && (
-                        <span className="text-xs text-red-400">
+                        <span className="text-xs text-red-600">
                           Prazo: {e.urgentDate.split('-').reverse().join('/')}{e.urgentTime ? ` às ${e.urgentTime}` : ''}
                         </span>
                       )}
@@ -167,7 +167,7 @@ export default function ExamesDisponiveis() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{examType?.name}</span>
                     <span className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1',
-                      e.software === 'Axel' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400',
+                      e.software === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
                     )}>
                       <Monitor className="h-3 w-3" />{e.software}
                     </span>

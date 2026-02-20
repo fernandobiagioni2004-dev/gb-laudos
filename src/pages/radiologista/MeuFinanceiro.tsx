@@ -70,29 +70,29 @@ export default function MeuFinanceiro() {
         <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <Wallet className="h-5 w-5 text-emerald-400" />
+              <Wallet className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total a Receber</p>
-              <p className="text-xl font-bold text-emerald-400">{fmt(totalReceived)}</p>
+              <p className="text-xl font-bold text-emerald-600">{fmt(totalReceived)}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <Clock className="h-5 w-5 text-amber-400" />
+              <Clock className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Em Análise (pendente)</p>
-              <p className="text-xl font-bold text-amber-400">{fmt(totalPending)}</p>
+              <p className="text-xl font-bold text-amber-600">{fmt(totalPending)}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-blue-400" />
+              <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Exames Finalizados</p>
@@ -129,7 +129,7 @@ export default function MeuFinanceiro() {
                       <td className="py-3 px-4">{clients.find(c => c.id === e.clientId)?.name}</td>
                       <td className="py-3 px-4 text-muted-foreground">{examTypes.find(t => t.id === e.examTypeId)?.name}</td>
                       <td className="py-3 px-4 text-muted-foreground">{formatDateBR(e.createdAt)}</td>
-                      <td className="py-3 px-4 text-emerald-400 font-medium">{fmt(e.radiologistValue)}</td>
+                      <td className="py-3 px-4 text-emerald-600 font-medium">{fmt(e.radiologistValue)}</td>
                       <td className="py-3 px-4"><StatusBadge status={e.status} /></td>
                     </tr>
                   ))}

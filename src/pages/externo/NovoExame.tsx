@@ -95,7 +95,7 @@ export default function NovoExame() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-          <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+          <CheckCircle2 className="h-8 w-8 text-emerald-600" />
         </div>
         <h2 className="text-xl font-bold">Exame Enviado com Sucesso!</h2>
         <p className="text-muted-foreground text-sm text-center max-w-sm">
@@ -298,7 +298,7 @@ export default function NovoExame() {
             onClick={() => !selectedFile && fileInputRef.current?.click()}
           >
             {selectedFile ? (
-              <div className="text-emerald-400">
+              <div className="text-emerald-600">
                 <CheckCircle2 className="h-6 w-6 mx-auto mb-2" />
                 <p className="text-sm font-medium">
                   {selectedFile.name} — {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB

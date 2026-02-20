@@ -3,17 +3,17 @@ import { cn } from '@/lib/utils';
 import type { ExamStatus } from '@/data/mockData';
 
 const variants: Record<ExamStatus, string> = {
-  'Disponível':  'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  'Em análise':  'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  'Finalizado':  'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  'Cancelado':   'bg-red-500/15 text-red-400 border-red-500/30',
+  'Disponível':  'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+  'Em análise':  'bg-amber-500/15 text-amber-600 border-amber-500/30',
+  'Finalizado':  'bg-blue-500/15 text-blue-600 border-blue-500/30',
+  'Cancelado':   'bg-red-500/15 text-red-600 border-red-500/30',
 };
 
 const dots: Record<ExamStatus, string> = {
-  'Disponível': 'bg-emerald-400',
-  'Em análise': 'bg-amber-400',
-  'Finalizado': 'bg-blue-400',
-  'Cancelado':  'bg-red-400',
+  'Disponível': 'bg-emerald-500',
+  'Em análise': 'bg-amber-500',
+  'Finalizado': 'bg-blue-500',
+  'Cancelado':  'bg-red-500',
 };
 
 export const StatusBadge = React.forwardRef<

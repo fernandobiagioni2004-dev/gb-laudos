@@ -75,7 +75,7 @@ export default function Radiologistas() {
               <div className="flex flex-wrap gap-1">
                 {r.software.map(s => (
                   <span key={s} className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1',
-                    s === 'Axel' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400',
+                    s === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
                   )}>
                     <Monitor className="h-3 w-3" />{s}
                   </span>
@@ -88,11 +88,11 @@ export default function Radiologistas() {
                 </div>
                 <div className="bg-muted/30 rounded p-2">
                   <p className="text-xs text-muted-foreground">Em Análise</p>
-                  <p className="font-bold text-sm text-amber-400">{r.inProgress}</p>
+                   <p className="font-bold text-sm text-amber-600">{r.inProgress}</p>
                 </div>
                 <div className="bg-muted/30 rounded p-2">
                   <p className="text-xs text-muted-foreground">A Receber</p>
-                  <p className="font-bold text-xs text-emerald-400">{fmt(r.toReceive)}</p>
+                  <p className="font-bold text-xs text-emerald-600">{fmt(r.toReceive)}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => setDetail(r.id)}>
@@ -117,7 +117,7 @@ export default function Radiologistas() {
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
               <p className="text-xs text-muted-foreground mb-1">Total a Receber</p>
-              <p className="font-bold text-emerald-400">{fmt(total)}</p>
+              <p className="font-bold text-emerald-600">{fmt(total)}</p>
             </div>
           </div>
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Exames</div>
@@ -131,7 +131,7 @@ export default function Radiologistas() {
                   <span className="text-muted-foreground text-xs">{examTypes.find(t => t.id === e.examTypeId)?.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  {e.status === 'Finalizado' && <span className="text-emerald-400">{fmt(e.radiologistValue)}</span>}
+                  {e.status === 'Finalizado' && <span className="text-emerald-600">{fmt(e.radiologistValue)}</span>}
                   <StatusBadge status={e.status} />
                 </div>
               </div>
