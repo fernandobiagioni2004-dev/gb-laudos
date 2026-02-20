@@ -1,30 +1,28 @@
 
 
-## Atualizar logo da sidebar
+## Melhorar visibilidade das opcoes de perfil na sidebar
 
-### Resumo
+### Problema
 
-Substituir o arquivo `src/assets/gb-laudos-logo.png` pela nova imagem enviada (logo "GB" com fundo roxo) e atualizar o fundo da sidebar para usar `#8E2EBF` diretamente como background.
+As cores dos perfis (`text-blue-600`, `text-emerald-600`, `text-amber-600`) nao tem contraste suficiente contra o fundo roxo `#8E2EBF` da sidebar, dificultando a leitura.
 
-### Alteracoes
+### Solucao
 
-#### 1. Substituir o logo
-- Copiar `user-uploads://image-5.png` para `src/assets/gb-laudos-logo.png`
+Trocar as cores dos perfis para tons mais claros/vibrantes que se destaquem sobre o fundo roxo:
 
-#### 2. Atualizar fundo da sidebar (`src/index.css`)
-- Mudar `--sidebar-background` de `278 55% 14%` (roxo escuro) para `278 61% 47%` (o proprio `#8E2EBF`)
-- Ajustar as demais variaveis para manter contraste sobre o fundo vibrante:
+#### Arquivo: `src/components/AppSidebar.tsx`
 
-```
---sidebar-background: 278 61% 47%;
---sidebar-foreground: 0 0% 100%;
---sidebar-primary: 0 0% 100%;
---sidebar-primary-foreground: 0 0% 100%;
---sidebar-accent: 278 61% 40%;
---sidebar-accent-foreground: 0 0% 100%;
---sidebar-border: 278 50% 42%;
---sidebar-ring: 0 0% 100%;
-```
+Alterar o mapa `roleColors` (linhas 26-30):
 
-2 arquivos afetados.
+| Perfil | Antes | Depois |
+|---|---|---|
+| Administrador | `text-blue-600` | `text-blue-200` |
+| Radiologista | `text-emerald-600` | `text-emerald-200` |
+| Usuario Externo | `text-amber-600` | `text-amber-200` |
+
+Tambem alterar o fundo do avatar (linha 114) de `bg-sidebar-accent` para `bg-white/15` para dar mais contraste ao circulo do avatar.
+
+O texto "Trocar perfil" (linha 123) sera alterado de `text-muted-foreground` para `text-white/60` para ficar visivel sobre o roxo.
+
+1 arquivo afetado.
 
