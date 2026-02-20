@@ -63,6 +63,7 @@ export type Database = {
           email: string | null
           id: number
           nome: string
+          softwares: string[] | null
           telefone: string | null
         }
         Insert: {
@@ -72,6 +73,7 @@ export type Database = {
           email?: string | null
           id?: number
           nome: string
+          softwares?: string[] | null
           telefone?: string | null
         }
         Update: {
@@ -81,22 +83,26 @@ export type Database = {
           email?: string | null
           id?: number
           nome?: string
+          softwares?: string[] | null
           telefone?: string | null
         }
         Relationships: []
       }
       exam_types: {
         Row: {
+          categoria: string
           criado_em: string | null
           id: number
           nome: string
         }
         Insert: {
+          categoria?: string
           criado_em?: string | null
           id?: number
           nome: string
         }
         Update: {
+          categoria?: string
           criado_em?: string | null
           id?: number
           nome?: string
@@ -105,47 +111,71 @@ export type Database = {
       }
       exams: {
         Row: {
+          arquivo_enviado: string | null
           atualizado_em: string | null
           client_id: number | null
           criado_em: string | null
+          data_exame: string | null
+          dentista_nome: string | null
           exam_type_id: number | null
+          finalidade: string | null
           id: number
           margem: number | null
+          observacoes: string | null
           paciente_data_nascimento: string | null
           paciente_nome: string
           radiologista_id: number | null
           software: Database["public"]["Enums"]["exam_software"]
           status: Database["public"]["Enums"]["exam_status"]
+          urgente: boolean | null
+          urgente_data: string | null
+          urgente_hora: string | null
           valor_cliente: number | null
           valor_radiologista: number | null
         }
         Insert: {
+          arquivo_enviado?: string | null
           atualizado_em?: string | null
           client_id?: number | null
           criado_em?: string | null
+          data_exame?: string | null
+          dentista_nome?: string | null
           exam_type_id?: number | null
+          finalidade?: string | null
           id?: number
           margem?: number | null
+          observacoes?: string | null
           paciente_data_nascimento?: string | null
           paciente_nome: string
           radiologista_id?: number | null
           software: Database["public"]["Enums"]["exam_software"]
           status?: Database["public"]["Enums"]["exam_status"]
+          urgente?: boolean | null
+          urgente_data?: string | null
+          urgente_hora?: string | null
           valor_cliente?: number | null
           valor_radiologista?: number | null
         }
         Update: {
+          arquivo_enviado?: string | null
           atualizado_em?: string | null
           client_id?: number | null
           criado_em?: string | null
+          data_exame?: string | null
+          dentista_nome?: string | null
           exam_type_id?: number | null
+          finalidade?: string | null
           id?: number
           margem?: number | null
+          observacoes?: string | null
           paciente_data_nascimento?: string | null
           paciente_nome?: string
           radiologista_id?: number | null
           software?: Database["public"]["Enums"]["exam_software"]
           status?: Database["public"]["Enums"]["exam_status"]
+          urgente?: boolean | null
+          urgente_data?: string | null
+          urgente_hora?: string | null
           valor_cliente?: number | null
           valor_radiologista?: number | null
         }
