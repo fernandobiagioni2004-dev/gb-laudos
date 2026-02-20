@@ -40,7 +40,7 @@ export function useExams() {
 export function useCreateExam() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (exam: Partial<DbExam>) => {
+    mutationFn: async ({ exam, file }: { exam: Partial<DbExam>; file?: File | null }) => {
       // Fetch client value
       if (exam.client_id && exam.exam_type_id) {
         const { data: priceData } = await supabase
@@ -56,6 +56,20 @@ export function useCreateExam() {
       }
       const { data, error } = await supabase.from('exams').insert(exam as any).select().single();
       if (error) throw error;
+
+      // Upload file to storage if provided
+      if (file && data) {
+        const examData = data as unknown as DbExam;
+        const filePath = `${exam.client_id}/${examData.id}/${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('exam-files')
+          .upload(filePath, file);
+        if (uploadError) throw uploadError;
+
+        // Update exam record with the real file path
+        await supabase.from('exams').update({ arquivo_enviado: filePath } as any).eq('id', examData.id);
+      }
+
       return data;
     },
     onSuccess: () => {

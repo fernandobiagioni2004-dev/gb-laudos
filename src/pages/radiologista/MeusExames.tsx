@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { FileText, Upload, AlertTriangle, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 function formatDateBR(dateStr: string | null) {
   if (!dateStr) return '—';
@@ -41,7 +42,17 @@ export default function MeusExamesRadiologista() {
     if (finalizeId) { finalizeExamMut.mutate(finalizeId); setFinalizeId(null); setUploadDone(false); }
   };
 
-  const handleDownloadFile = (fileName: string) => { toast.success(`Download simulado: ${fileName}`); };
+  const handleDownloadFile = async (filePath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('exam-files')
+        .createSignedUrl(filePath, 60);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch {
+      toast.error('Erro ao gerar link de download');
+    }
+  };
 
   return (
     <div className="space-y-6">

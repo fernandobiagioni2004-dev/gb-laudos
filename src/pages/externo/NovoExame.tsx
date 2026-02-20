@@ -55,20 +55,22 @@ export default function NovoExame() {
 
     try {
       await createExam.mutateAsync({
-        client_id: clienteId!,
-        exam_type_id: Number(form.examTypeId),
-        paciente_nome: form.patientName,
-        paciente_data_nascimento: form.patientBirthDate,
-        software: (simClient?.softwares?.[0] ?? 'iDixel') as any,
-        status: 'Disponível' as any,
-        observacoes: form.observations,
-        urgente: form.urgent,
-        urgente_data: form.urgent ? form.urgentDate : null,
-        urgente_hora: form.urgent ? form.urgentTime : null,
-        dentista_nome: form.dentistName,
-        finalidade: form.purpose,
-        data_exame: form.examDate,
-        arquivo_enviado: selectedFile?.name ?? null,
+        exam: {
+          client_id: clienteId!,
+          exam_type_id: Number(form.examTypeId),
+          paciente_nome: form.patientName,
+          paciente_data_nascimento: form.patientBirthDate,
+          software: (simClient?.softwares?.[0] ?? 'iDixel') as any,
+          status: 'Disponível' as any,
+          observacoes: form.observations,
+          urgente: form.urgent,
+          urgente_data: form.urgent ? form.urgentDate : null,
+          urgente_hora: form.urgent ? form.urgentTime : null,
+          dentista_nome: form.dentistName,
+          finalidade: form.purpose,
+          data_exame: form.examDate,
+        },
+        file: selectedFile,
       });
       setSubmitted(true);
     } catch {
