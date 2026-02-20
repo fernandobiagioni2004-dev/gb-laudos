@@ -429,7 +429,7 @@ export type Database = {
       }
     }
     Enums: {
-      exam_software: "Axel" | "Morita"
+      exam_software: "iDixel" | "OnDemand"
       exam_status: "Disponível" | "Em análise" | "Finalizado" | "Cancelado"
       user_role: "admin" | "radiologista" | "cliente" | "nenhum"
     }
@@ -559,7 +559,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      exam_software: ["Axel", "Morita"],
+      exam_software: ["iDixel", "OnDemand"],
       exam_status: ["Disponível", "Em análise", "Finalizado", "Cancelado"],
       user_role: ["admin", "radiologista", "cliente", "nenhum"],
     },

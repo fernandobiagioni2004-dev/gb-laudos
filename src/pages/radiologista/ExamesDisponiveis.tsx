@@ -39,7 +39,7 @@ export default function ExamesDisponiveis() {
   const assumeExam = useAssumeExam();
 
   const [confirm, setConfirm] = useState<number | null>(null);
-  const [softwareFilter, setSoftwareFilter] = useState<'Todos' | 'Axel' | 'Morita'>('Todos');
+  const [softwareFilter, setSoftwareFilter] = useState<'Todos' | 'iDixel' | 'OnDemand'>('Todos');
   const [prioridadeFilter, setPrioridadeFilter] = useState<PrioridadeFilter>('Todos');
 
   const mySoftwares = profile?.softwares ?? [];
@@ -99,8 +99,8 @@ export default function ExamesDisponiveis() {
 
       <ToggleGroup type="single" value={softwareFilter} onValueChange={(v) => v && setSoftwareFilter(v as any)} variant="outline" size="sm">
         <ToggleGroupItem value="Todos">Todos</ToggleGroupItem>
-        <ToggleGroupItem value="Axel" className="flex items-center gap-1.5"><Monitor className="h-3.5 w-3.5" />Axel</ToggleGroupItem>
-        <ToggleGroupItem value="Morita" className="flex items-center gap-1.5"><Monitor className="h-3.5 w-3.5" />Morita</ToggleGroupItem>
+        <ToggleGroupItem value="iDixel" className="flex items-center gap-1.5"><Monitor className="h-3.5 w-3.5" />iDixel</ToggleGroupItem>
+        <ToggleGroupItem value="OnDemand" className="flex items-center gap-1.5"><Monitor className="h-3.5 w-3.5" />OnDemand</ToggleGroupItem>
       </ToggleGroup>
 
       <ToggleGroup type="single" value={prioridadeFilter} onValueChange={(v) => v && setPrioridadeFilter(v as PrioridadeFilter)} variant="outline" size="sm">
@@ -140,7 +140,7 @@ export default function ExamesDisponiveis() {
                   )}
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{examType?.nome}</span>
-                    <span className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1', e.software === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600')}><Monitor className="h-3 w-3" />{e.software}</span>
+                    <span className={cn('px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1', e.software === 'iDixel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600')}><Monitor className="h-3 w-3" />{e.software}</span>
                   </div>
                   <DeadlineBadge createdAt={e.criado_em?.split('T')[0] ?? ''} urgent={e.urgente ?? false} urgentDate={e.urgente_data ?? undefined} urgentTime={e.urgente_hora ?? undefined} />
                   <p className="text-xs text-muted-foreground">Solicitado em {formatDateBR(e.criado_em)}</p>

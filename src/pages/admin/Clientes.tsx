@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Users, CheckCircle2, XCircle, Eye, PlusCircle, MoreHorizontal, Pencil, Trash2, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Software = 'Axel' | 'Morita';
+type Software = 'iDixel' | 'OnDemand';
 
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
@@ -112,7 +112,7 @@ export default function Clientes() {
                 </div>
                 <div className="flex items-center gap-1">
                   {(c.softwares ?? []).map(sw => (
-                    <span key={sw} className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full', sw === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600')}>
+                    <span key={sw} className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full', sw === 'iDixel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600')}>
                       <Monitor className="h-3 w-3" />{sw}
                     </span>
                   ))}
@@ -188,10 +188,10 @@ export default function Clientes() {
               <div className="space-y-1.5">
                 <Label>Software *</Label>
                 <div className="flex gap-3 pt-1">
-                  {(['Axel', 'Morita'] as Software[]).map(sw => {
+                  {(['iDixel', 'OnDemand'] as Software[]).map(sw => {
                     const checked = form.softwares.includes(sw);
                     return (
-                      <label key={sw} className={cn('flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors', checked ? (sw === 'Axel' ? 'border-violet-500/50 bg-violet-500/10 text-violet-600' : 'border-sky-500/50 bg-sky-500/10 text-sky-600') : 'border-border text-muted-foreground hover:border-border/80')}>
+                      <label key={sw} className={cn('flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors', checked ? (sw === 'iDixel' ? 'border-violet-500/50 bg-violet-500/10 text-violet-600' : 'border-sky-500/50 bg-sky-500/10 text-sky-600') : 'border-border text-muted-foreground hover:border-border/80')}>
                         <input type="checkbox" className="sr-only" checked={checked} onChange={() => setForm(f => ({ ...f, softwares: checked ? f.softwares.filter(s => s !== sw) : [...f.softwares, sw] }))} />
                         <Monitor className="h-3.5 w-3.5" /><span className="text-sm font-medium">{sw}</span>
                       </label>

@@ -26,7 +26,7 @@ const roleBadgeColors: Record<string, string> = {
   nenhum: 'bg-gray-500/15 text-gray-500',
 };
 
-const softwareOptions = ['Morita', 'Axel'];
+const softwareOptions = ['OnDemand', 'iDixel'];
 
 export default function Usuarios() {
   const { data: users, isLoading } = useAppUsers();
