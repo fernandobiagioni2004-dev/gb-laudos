@@ -4,36 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Plataforma de Laudos — Design System (Dark Mode Only) */
+/* Plataforma de Laudos — Design System (Light Mode) */
 
 @layer base {
   :root {
-    --background: 222 20% 8%;
-    --foreground: 210 20% 95%;
+    --background: 220 14% 96%;
+    --foreground: 222 47% 11%;
 
-    --card: 222 20% 11%;
-    --card-foreground: 210 20% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 222 20% 11%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
     --primary: 217 91% 60%;
-    --primary-foreground: 222 20% 8%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 15% 18%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 222 47% 20%;
 
-    --muted: 222 15% 15%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 9% 46%;
 
     --accent: 217 91% 60%;
-    --accent-foreground: 222 20% 8%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 222 15% 18%;
-    --input: 222 15% 18%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
     --ring: 217 91% 60%;
 
     --radius: 0.625rem;
@@ -44,7 +44,7 @@
     --status-finalizado: 217 91% 60%;
     --status-cancelado: 0 72% 51%;
 
-    /* Sidebar */
+    /* Sidebar — permanece escura */
     --sidebar-background: 222 22% 7%;
     --sidebar-foreground: 210 15% 75%;
     --sidebar-primary: 217 91% 60%;
@@ -59,10 +59,6 @@
 @layer base {
   * {
     @apply border-border;
-  }
-
-  html {
-    color-scheme: dark;
   }
 
   body {
@@ -86,4 +82,3 @@
     background: hsl(var(--muted-foreground));
   }
 }
-

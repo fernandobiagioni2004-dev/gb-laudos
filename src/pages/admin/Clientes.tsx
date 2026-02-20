@@ -121,13 +121,13 @@ export default function Clientes() {
                 </div>
                 <div className="flex items-center gap-1">
                   {c.software.map(sw => (
-                    <span key={sw} className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full', sw === 'Axel' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400')}>
+                    <span key={sw} className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full', sw === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600')}>
                       <Monitor className="h-3 w-3" />
                       {sw}
                     </span>
                   ))}
                   <span className={cn('flex items-center gap-1 text-xs px-2 py-1 rounded-full',
-                    c.status === 'Ativo' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400',
+                    c.status === 'Ativo' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-600',
                   )}>
                     {c.status === 'Ativo' ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                     {c.status}
@@ -156,11 +156,11 @@ export default function Clientes() {
                 </div>
                 <div className="bg-muted/30 rounded p-2">
                   <p className="text-xs text-muted-foreground">Faturado</p>
-                  <p className="font-bold text-sm text-emerald-400">{fmt(c.revenue)}</p>
+                  <p className="font-bold text-sm text-emerald-600">{fmt(c.revenue)}</p>
                 </div>
                 <div className="bg-muted/30 rounded p-2">
                   <p className="text-xs text-muted-foreground">Margem</p>
-                  <p className="font-bold text-sm text-blue-400">{fmt(c.margin)}</p>
+                  <p className="font-bold text-sm text-blue-600">{fmt(c.margin)}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => setDetail(c.id)}>
@@ -182,15 +182,15 @@ export default function Clientes() {
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-muted/30 rounded-lg p-3 text-center">
               <p className="text-xs text-muted-foreground mb-1">Total Faturado</p>
-              <p className="font-bold text-emerald-400">{fmt(detailRevenue)}</p>
+              <p className="font-bold text-emerald-600">{fmt(detailRevenue)}</p>
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
               <p className="text-xs text-muted-foreground mb-1">Total Pago</p>
-              <p className="font-bold text-amber-400">{fmt(detailPaid)}</p>
+              <p className="font-bold text-amber-600">{fmt(detailPaid)}</p>
             </div>
             <div className="bg-muted/30 rounded-lg p-3 text-center">
               <p className="text-xs text-muted-foreground mb-1">Margem</p>
-              <p className="font-bold text-blue-400">{fmt(detailRevenue - detailPaid)}</p>
+              <p className="font-bold text-blue-600">{fmt(detailRevenue - detailPaid)}</p>
             </div>
           </div>
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Histórico de Exames</div>
@@ -203,7 +203,7 @@ export default function Clientes() {
                   <span className="text-muted-foreground">{examTypes.find(t => t.id === e.examTypeId)?.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-emerald-400">{fmt(e.clientValue)}</span>
+                  <span className="text-emerald-600">{fmt(e.clientValue)}</span>
                   <StatusBadge status={e.status} />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function Clientes() {
                   {(['Axel', 'Morita'] as Software[]).map(sw => {
                     const checked = form.software.includes(sw);
                     return (
-                      <label key={sw} className={cn('flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors', checked ? (sw === 'Axel' ? 'border-violet-500/50 bg-violet-500/10 text-violet-400' : 'border-sky-500/50 bg-sky-500/10 text-sky-400') : 'border-border text-muted-foreground hover:border-border/80')}>
+                      <label key={sw} className={cn('flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors', checked ? (sw === 'Axel' ? 'border-violet-500/50 bg-violet-500/10 text-violet-600' : 'border-sky-500/50 bg-sky-500/10 text-sky-600') : 'border-border text-muted-foreground hover:border-border/80')}>
                         <input
                           type="checkbox"
                           className="sr-only"

@@ -26,11 +26,11 @@ export function DeadlineBadge({ createdAt, urgent, urgentDate, urgentTime, class
 
   let colorClasses: string;
   if (diffHours < 0) {
-    colorClasses = 'bg-red-500/15 text-red-400 border-red-500/30';
+    colorClasses = 'bg-red-500/15 text-red-600 border-red-500/30';
   } else if (diffHours < 12) {
-    colorClasses = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+    colorClasses = 'bg-amber-500/15 text-amber-600 border-amber-500/30';
   } else {
-    colorClasses = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+    colorClasses = 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30';
   }
 
   const day = String(deadline.getDate()).padStart(2, '0');

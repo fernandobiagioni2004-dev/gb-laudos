@@ -111,26 +111,26 @@ export default function Exames() {
                       <td className="py-3 px-4 whitespace-nowrap">{getExamType(e.examTypeId)?.name}</td>
                       <td className="py-3 px-4">
                         <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                          e.software === 'Axel' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400',
+                          e.software === 'Axel' ? 'bg-violet-500/15 text-violet-600' : 'bg-sky-500/15 text-sky-600',
                         )}>{e.software}</span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">{getRadiologist(e.radiologistId)?.name ?? '—'}</td>
                       <td className="py-3 px-4"><StatusBadge status={e.status} /></td>
-                      <td className="py-3 px-4 text-emerald-400 whitespace-nowrap">{fmt(e.clientValue)}</td>
-                      <td className="py-3 px-4 text-amber-400 whitespace-nowrap">{fmt(e.radiologistValue)}</td>
-                      <td className="py-3 px-4 text-blue-400 whitespace-nowrap">{fmt(e.margin)}</td>
+                      <td className="py-3 px-4 text-emerald-600 whitespace-nowrap">{fmt(e.clientValue)}</td>
+                      <td className="py-3 px-4 text-amber-600 whitespace-nowrap">{fmt(e.radiologistValue)}</td>
+                      <td className="py-3 px-4 text-blue-600 whitespace-nowrap">{fmt(e.margin)}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDetailExam(e)}>
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
                           {e.status === 'Disponível' && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-400 hover:text-emerald-300" onClick={() => { setAssignDialog(e); setSelectedRad(e.radiologistId ?? ''); }}>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:text-emerald-500" onClick={() => { setAssignDialog(e); setSelectedRad(e.radiologistId ?? ''); }}>
                               <UserCheck className="h-3.5 w-3.5" />
                             </Button>
                           )}
                           {e.status !== 'Cancelado' && e.status !== 'Finalizado' && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300" onClick={() => setCancelDialog(e)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600 hover:text-red-500" onClick={() => setCancelDialog(e)}>
                               <XCircle className="h-3.5 w-3.5" />
                             </Button>
                           )}
@@ -165,15 +165,15 @@ export default function Exames() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-lg border border-border p-3 text-center">
                   <p className="text-xs text-muted-foreground mb-1">Valor Cliente</p>
-                  <p className="font-bold text-emerald-400">{fmt(detailExam.clientValue)}</p>
+                  <p className="font-bold text-emerald-600">{fmt(detailExam.clientValue)}</p>
                 </div>
                 <div className="rounded-lg border border-border p-3 text-center">
                   <p className="text-xs text-muted-foreground mb-1">Valor Rad.</p>
-                  <p className="font-bold text-amber-400">{fmt(detailExam.radiologistValue)}</p>
+                  <p className="font-bold text-amber-600">{fmt(detailExam.radiologistValue)}</p>
                 </div>
                 <div className="rounded-lg border border-border p-3 text-center">
                   <p className="text-xs text-muted-foreground mb-1">Margem</p>
-                  <p className="font-bold text-blue-400">{fmt(detailExam.margin)}</p>
+                  <p className="font-bold text-blue-600">{fmt(detailExam.margin)}</p>
                 </div>
               </div>
               {detailExam.observations && (

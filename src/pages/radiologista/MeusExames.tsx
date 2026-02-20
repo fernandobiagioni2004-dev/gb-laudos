@@ -56,12 +56,12 @@ export default function MeusExamesRadiologista() {
     if (!exam?.urgent) return null;
     return (
       <div className="space-y-0.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-600 border border-red-500/40 animate-pulse">
           <AlertTriangle className="h-3 w-3" />
           Urgente
         </span>
         {exam.urgentDate && (
-          <p className="text-[10px] text-red-400/80">
+          <p className="text-[10px] text-red-600/80">
             Prazo: {formatDate(exam.urgentDate)}{exam.urgentTime ? ` às ${exam.urgentTime}` : ''}
           </p>
         )}
@@ -135,7 +135,7 @@ export default function MeusExamesRadiologista() {
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-xs text-primary">{e.id}</span>
                       {e.urgent && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/40">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/20 text-red-600 border border-red-500/40">
                           <AlertTriangle className="h-2.5 w-2.5" />
                           Urgente
                         </span>
@@ -206,7 +206,7 @@ export default function MeusExamesRadiologista() {
                 </div>
 
                 {detailExam.urgent && (
-                  <div className="p-2 rounded-md bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-400">
+                  <div className="p-2 rounded-md bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-600">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="font-semibold text-xs uppercase">Urgente</span>
                     {detailExam.urgentDate && (
@@ -278,7 +278,7 @@ export default function MeusExamesRadiologista() {
               onClick={() => setUploadDone(true)}
             >
               {uploadDone ? (
-                <div className="text-emerald-400">
+                <div className="text-emerald-600">
                   <FileText className="h-8 w-8 mx-auto mb-2" />
                   <p className="text-sm font-medium">laudo_{finalizeId}.pdf — Pronto</p>
                 </div>

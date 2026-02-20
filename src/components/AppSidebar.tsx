@@ -23,9 +23,9 @@ const roleLabels: Record<Role, string> = {
 };
 
 const roleColors: Record<Role, string> = {
-  admin: 'text-blue-400',
-  radiologista: 'text-emerald-400',
-  externo: 'text-amber-400',
+  admin: 'text-blue-600',
+  radiologista: 'text-emerald-600',
+  externo: 'text-amber-600',
 };
 
 const roleAvatars: Record<Role, string> = {

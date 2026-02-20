@@ -173,8 +173,8 @@ export default function Dashboard() {
                     <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                       <td className="py-3 pr-4 font-medium">{r.name}</td>
                       <td className="py-3 pr-4 text-right">{r.count}</td>
-                      <td className="py-3 pr-4 text-right text-emerald-400">{fmt(r.generated)}</td>
-                      <td className="py-3 text-right text-amber-400">{fmt(r.toReceive)}</td>
+                      <td className="py-3 pr-4 text-right text-emerald-600">{fmt(r.generated)}</td>
+                      <td className="py-3 text-right text-amber-600">{fmt(r.toReceive)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -189,12 +189,12 @@ export default function Dashboard() {
 
 function KpiCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
   const colorMap: Record<string, string> = {
-    blue: 'text-blue-400 bg-blue-500/10',
-    emerald: 'text-emerald-400 bg-emerald-500/10',
-    amber: 'text-amber-400 bg-amber-500/10',
-    violet: 'text-violet-400 bg-violet-500/10',
-    sky: 'text-sky-400 bg-sky-500/10',
-    rose: 'text-rose-400 bg-rose-500/10',
+    blue: 'text-blue-600 bg-blue-500/10',
+    emerald: 'text-emerald-600 bg-emerald-500/10',
+    amber: 'text-amber-600 bg-amber-500/10',
+    violet: 'text-violet-600 bg-violet-500/10',
+    sky: 'text-sky-600 bg-sky-500/10',
+    rose: 'text-rose-600 bg-rose-500/10',
   };
   return (
     <Card className="hover:border-border/80 transition-colors">
