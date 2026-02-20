@@ -1,32 +1,41 @@
 
 
-# Separar logos: Login e Sidebar
+# Implementar Upload e Download Real de Arquivos
 
 ## Problema
-Ambas as telas (login e sidebar) usam o mesmo arquivo `src/assets/gb-laudos-logo.png`. Quando o logo foi substituido para a tela de login, ele mudou tambem na sidebar.
+O upload e download de arquivos do exame sao totalmente simulados. O formulario de novo exame salva apenas o nome do arquivo no banco de dados, sem fazer upload real. O botao de download no perfil do radiologista apenas exibe uma mensagem "Download simulado".
 
 ## Solucao
-Salvar o novo logo (enviado pelo usuario) em um arquivo separado para uso exclusivo na tela de login, e restaurar o logo original na sidebar.
+Criar um bucket de storage, implementar o upload real no formulario de novo exame e o download real na tela do radiologista.
 
 ## Detalhes Tecnicos
 
-### 1. Criar novo arquivo de imagem
-- Copiar `user-uploads://Design_sem_nome_1.jpg` para `src/assets/gb-laudos-login-logo.png` (novo arquivo separado)
+### 1. Criar bucket de storage (migracao SQL)
+- Criar bucket `exam-files` (privado)
+- Criar politicas RLS no `storage.objects`:
+  - Cliente pode fazer upload em pastas do proprio `client_id`
+  - Radiologista pode ler arquivos de exames que estao atribuidos a ele ou disponiveis
+  - Admin tem acesso total
 
-### 2. Restaurar logo original na sidebar
-- Copiar o logo original de volta para `src/assets/gb-laudos-logo.png` (o arquivo que a sidebar ja importa)
-- Como o logo original foi sobrescrito, sera necessario usar a versao anterior do repositorio ou solicitar ao usuario o arquivo original
+### 2. Alterar `src/pages/externo/NovoExame.tsx`
+- Apos criar o exame, fazer upload do arquivo para o bucket `exam-files` usando o path `{client_id}/{exam_id}/{filename}`
+- Atualizar o campo `arquivo_enviado` com o path completo no storage (nao apenas o nome)
+- Mostrar progresso/estado do upload
 
-### 3. Alternativa mais simples (recomendada)
-Como o logo original foi sobrescrito, a abordagem mais pratica e:
-- Renomear o uso atual: manter `gb-laudos-logo.png` como esta (com o logo novo)
-- Criar `src/assets/gb-laudos-sidebar-logo.png` com o logo antigo (que precisara ser restaurado do historico do projeto)
-- Atualizar `src/components/AppSidebar.tsx` para importar o novo arquivo
+### 3. Alterar `src/pages/radiologista/MeusExames.tsx`
+- Substituir `handleDownloadFile` por logica real:
+  - Gerar URL assinada via `supabase.storage.from('exam-files').createSignedUrl(path, 60)`
+  - Abrir a URL em nova aba para download
+- Tambem atualizar a pagina de exames do admin (`src/pages/admin/Exames.tsx`) se houver botao de download
 
-**Na pratica:** O arquivo original pode ser recuperado do historico de versoes. A mudanca em codigo sera apenas atualizar o import em `Auth.tsx` ou `AppSidebar.tsx` para apontar para o arquivo correto.
+### 4. Alterar `src/hooks/useExams.ts`
+- Na mutacao `useCreateExam`, aceitar o arquivo (`File`) como parametro opcional
+- Fazer o upload do arquivo apos inserir o exame no banco
+- Atualizar o registro do exame com o path real do arquivo
 
-### Arquivos alterados
-- `src/assets/gb-laudos-login-logo.png` — novo arquivo com o logo do login
-- `src/assets/gb-laudos-logo.png` — restaurado para o logo original (sidebar)
-- `src/pages/Auth.tsx` — import atualizado para usar `gb-laudos-login-logo.png`
+### Fluxo resultante
+1. Cliente preenche formulario e seleciona arquivo ZIP
+2. Ao enviar, o exame e criado no banco e o arquivo e enviado ao storage
+3. O campo `arquivo_enviado` armazena o caminho real no storage (ex: `1/42/exame.zip`)
+4. Radiologista clica em "Baixar Arquivo" e recebe uma URL assinada que inicia o download
 
