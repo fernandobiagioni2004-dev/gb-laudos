@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +10,11 @@ import { toast } from '@/hooks/use-toast';
 import gbLaudosLogo from '@/assets/gb-laudos-logo.png';
 import loginBg from '@/assets/login-bg.jpeg';
 
+type AuthMode = 'login' | 'signup' | 'forgot';
+
 export default function Auth() {
   const { session, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
@@ -32,7 +35,17 @@ export default function Auth() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (isLogin) {
+      if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password',
+        });
+        if (error) {
+          toast({ title: 'Erro ao enviar link', description: error.message, variant: 'destructive' });
+        } else {
+          toast({ title: '✅ Link enviado!', description: 'Verifique sua caixa de e-mail.' });
+          setMode('login');
+        }
+      } else if (mode === 'login') {
         const { error } = await signIn(email, password);
         if (error) {
           toast({ title: 'Erro ao entrar', description: error.message, variant: 'destructive' });
@@ -54,6 +67,8 @@ export default function Auth() {
     }
   };
 
+  const title = mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar Conta' : 'Recuperar Senha';
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
@@ -65,11 +80,11 @@ export default function Auth() {
           <div className="flex justify-center">
             <img src={gbLaudosLogo} alt="GB Laudos" className="h-16 w-auto object-contain" />
           </div>
-          <CardTitle className="text-xl">{isLogin ? 'Entrar' : 'Criar Conta'}</CardTitle>
+          <CardTitle className="text-xl">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+            {mode === 'signup' && (
               <div className="space-y-1.5">
                 <Label>Nome completo</Label>
                 <Input placeholder="Seu nome" value={nome} onChange={e => setNome(e.target.value)} required />
@@ -79,18 +94,27 @@ export default function Auth() {
               <Label>E-mail</Label>
               <Input type="email" placeholder="email@exemplo.com" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
-            <div className="space-y-1.5">
-              <Label>Senha</Label>
-              <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-            </div>
+            {mode !== 'forgot' && (
+              <div className="space-y-1.5">
+                <Label>Senha</Label>
+                <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+              </div>
+            )}
+            {mode === 'login' && (
+              <div className="text-right">
+                <button type="button" onClick={() => setMode('forgot')} className="text-xs text-primary hover:underline font-medium">
+                  Esqueceu sua senha?
+                </button>
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? 'Aguarde...' : isLogin ? 'Entrar' : 'Cadastrar'}
+              {submitting ? 'Aguarde...' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Cadastrar' : 'Enviar link'}
             </Button>
           </form>
           <p className="text-xs text-center text-muted-foreground mt-4">
-            {isLogin ? 'Não tem conta?' : 'Já tem conta?'}{' '}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
-              {isLogin ? 'Cadastre-se' : 'Entrar'}
+            {mode === 'login' ? 'Não tem conta?' : 'Já tem conta?'}{' '}
+            <button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="text-primary hover:underline font-medium">
+              {mode === 'login' ? 'Cadastre-se' : 'Entrar'}
             </button>
           </p>
         </CardContent>

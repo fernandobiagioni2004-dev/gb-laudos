@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Auth
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 
 // Admin pages
 import Dashboard from "@/pages/admin/Dashboard";
@@ -95,6 +96,7 @@ const App = () => {
             <AppProvider>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <AppRoutes />
