@@ -24,6 +24,8 @@ export default function NovoExame() {
   const [form, setForm] = useState({
     patientName: '',
     patientBirthDate: '',
+    dentistName: '',
+    examDate: '',
     examCategory: '' as ExamCategory | '',
     examTypeId: '',
     observations: '',
@@ -41,7 +43,7 @@ export default function NovoExame() {
     : [];
 
   const handleSubmit = () => {
-    if (!form.patientName || !form.patientBirthDate || !form.examCategory || !form.examTypeId) {
+    if (!form.patientName || !form.patientBirthDate || !form.dentistName || !form.examDate || !form.examCategory || !form.examTypeId) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
@@ -79,7 +81,7 @@ export default function NovoExame() {
   };
 
   const handleNew = () => {
-    setForm({ patientName: '', patientBirthDate: '', examCategory: '', examTypeId: '', observations: '', purpose: '', urgent: false, urgentDate: '', urgentTime: '' });
+    setForm({ patientName: '', patientBirthDate: '', dentistName: '', examDate: '', examCategory: '', examTypeId: '', observations: '', purpose: '', urgent: false, urgentDate: '', urgentTime: '' });
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setSubmitted(false);
@@ -131,6 +133,22 @@ export default function NovoExame() {
                 type="date"
                 value={form.patientBirthDate}
                 onChange={e => setForm(f => ({ ...f, patientBirthDate: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nome do Dentista Solicitante *</Label>
+              <Input
+                placeholder="Nome do dentista"
+                value={form.dentistName}
+                onChange={e => setForm(f => ({ ...f, dentistName: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Data do Exame *</Label>
+              <Input
+                type="date"
+                value={form.examDate}
+                onChange={e => setForm(f => ({ ...f, examDate: e.target.value }))}
               />
             </div>
           </div>
