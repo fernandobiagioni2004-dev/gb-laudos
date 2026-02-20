@@ -1,43 +1,43 @@
 
 
-## Adicionar logo GB Laudos na sidebar
+## Atualizar cor da sidebar para #8E2EBF e trocar logo
 
 ### Resumo
 
-Substituir o placeholder "PL" e o texto "Plataforma de Laudos" no cabecalho da sidebar pela logo da empresa GB Laudos (imagem enviada) e o nome "GB Laudos".
+Duas alteracoes: (1) mudar o tom de roxo da sidebar para o codigo especifico `#8E2EBF` e (2) substituir o logo atual pelo novo enviado (logo "GB"), com fundo removido e tamanho maior.
 
 ### Alteracoes
 
-#### 1. Copiar a imagem do logo para o projeto
+#### 1. Novo logo (`src/assets/gb-laudos-logo.png`)
 
-- Copiar `user-uploads://image-2.png` para `src/assets/gb-laudos-logo.png`
+- Substituir o arquivo atual pela nova imagem enviada (logo "GB")
+- A imagem enviada ja possui fundo colorido; como nao e possivel remover fundo de imagem automaticamente em codigo, a melhor alternativa e aplicar `mix-blend-mode: screen` ou usar `border-radius` para suavizar. Porem, o ideal seria o usuario fornecer a versao PNG com fundo transparente. Se nao for possivel, sera utilizada a imagem como esta, com bordas arredondadas.
+- Aumentar o tamanho do logo de `h-8 w-8` para `h-10 w-10` (expandido) e `h-9 w-9` (colapsado)
 
-#### 2. Atualizar `src/components/AppSidebar.tsx`
+#### 2. Cor da sidebar (`src/index.css`)
 
-- Importar a imagem: `import gbLaudosLogo from '@/assets/gb-laudos-logo.png'`
-- No header (sidebar expandida): substituir o quadrado roxo "PL" por uma tag `<img>` com o logo, e trocar "Plataforma / de Laudos" por "GB Laudos"
-- No header (sidebar colapsada): substituir o quadrado "PL" pelo logo redimensionado (h-8 w-8)
-- No footer: atualizar o texto "v1.0 — Plataforma de Laudos" para "v1.0 — GB Laudos"
+Converter `#8E2EBF` para HSL: aproximadamente `278 61% 47%`. Derivar a paleta da sidebar a partir desse tom:
 
-### Detalhes tecnicos
-
-Cabecalho expandido (substituicao):
-```tsx
-<div className="flex items-center gap-2">
-  <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
-  <div>
-    <p className="text-sm font-semibold text-sidebar-accent-foreground">GB Laudos</p>
-    <p className="text-xs text-sidebar-foreground">Laudos Odontologicos</p>
-  </div>
-</div>
+```
+--sidebar-background: 278 55% 14%;         /* versao bem escura do #8E2EBF */
+--sidebar-foreground: 278 20% 80%;         /* texto claro com leve tom roxo */
+--sidebar-primary: 278 61% 47%;           /* o proprio #8E2EBF */
+--sidebar-primary-foreground: 0 0% 100%;  /* branco */
+--sidebar-accent: 278 45% 22%;            /* hover: roxo medio escuro */
+--sidebar-accent-foreground: 278 15% 93%; /* texto hover: quase branco */
+--sidebar-border: 278 35% 20%;            /* bordas */
+--sidebar-ring: 278 61% 47%;              /* ring de foco */
 ```
 
-Cabecalho colapsado:
-```tsx
-<div className="flex justify-center">
-  <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
-</div>
-```
+#### 3. Componente AppSidebar (`src/components/AppSidebar.tsx`)
 
-2 arquivos afetados (1 asset copiado + 1 componente editado).
+- Atualizar `bg-purple-600` (caso exista) para usar a cor da sidebar ou manter coerencia
+- Aumentar tamanho do logo: `h-10 w-10` na versao expandida, `h-9 w-9` na colapsada
+- Adicionar `rounded-xl` para suavizar bordas do logo
+
+### Arquivos afetados
+
+- `src/assets/gb-laudos-logo.png` (substituido)
+- `src/index.css` (variaveis sidebar)
+- `src/components/AppSidebar.tsx` (tamanho do logo)
 
