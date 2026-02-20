@@ -1,22 +1,50 @@
 
 
-## Adicionar horario no prazo do DeadlineBadge
+## Adicionar filtro de prioridade na tela Exames Disponiveis
 
-### Alteracao
+### Resumo
 
-No componente `src/components/DeadlineBadge.tsx`, incluir o horario (HH:mm) junto da data no texto exibido.
+Adicionar um novo grupo de filtros por prioridade/prazo na tela de Exames Disponiveis do radiologista, permitindo filtrar por: Todos, Urgentes, Proximos de expirar (menos de 12h) e Vencidos.
 
-Atualmente exibe: `Prazo: 22/02/2026`
-Passara a exibir: `Prazo: 22/02/2026 as 12:00`
+### Alteracoes
+
+#### Arquivo unico: `src/pages/radiologista/ExamesDisponiveis.tsx`
+
+1. **Novo estado** `prioridadeFilter` com valores: `'Todos'`, `'Urgentes'`, `'Expirando'`, `'Vencidos'`
+
+2. **Novo ToggleGroup** abaixo do filtro de software existente, com icones para cada opcao:
+   - **Todos**: sem filtro adicional
+   - **Urgentes**: exames com `urgent === true`
+   - **Expirando**: exames cujo prazo esta a menos de 12h (mas ainda nao vencido)
+   - **Vencidos**: exames cujo prazo ja passou
+
+3. **Atualizar o `useMemo`** do array `available` para aplicar o filtro de prioridade apos o filtro de software, usando a mesma logica do `DeadlineBadge` (importar `calcDeadline` de `@/lib/utils`):
+   - Calcular o deadline de cada exame
+   - Comparar com `new Date()` para determinar `diffHours`
+   - Filtrar conforme a opcao selecionada
+
+4. **Ordenacao**: alem da ordenacao por urgencia ja existente, ordenar tambem por proximidade do prazo (exames mais proximos de vencer primeiro)
+
+5. **Contador**: exibir ao lado de cada opcao do filtro a quantidade de exames correspondentes para dar visibilidade rapida
 
 ### Detalhes tecnicos
 
-- Na linha 39, apos montar a string `formatted` com dia/mes/ano, adicionar as horas e minutos do deadline:
-  ```
-  const hours = String(deadline.getHours()).padStart(2, '0');
-  const minutes = String(deadline.getMinutes()).padStart(2, '0');
-  const formatted = `${day}/${month}/${year} as ${hours}:${minutes}`;
-  ```
-- Apenas 1 arquivo alterado: `src/components/DeadlineBadge.tsx`
-- A alteracao se aplica automaticamente em todas as telas que usam o componente (Exames Disponiveis, Meus Exames, Admin)
+Logica de calculo no filtro:
+
+```typescript
+import { calcDeadline } from '@/lib/utils';
+
+// Para cada exame:
+const deadline = e.urgent && e.urgentDate
+  ? new Date(`${e.urgentDate}T${e.urgentTime || '23:59'}:00`)
+  : calcDeadline(e.createdAt);
+const diffHours = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+// Filtros:
+// Urgentes: e.urgent === true
+// Expirando: diffHours >= 0 && diffHours < 12
+// Vencidos: diffHours < 0
+```
+
+Icones sugeridos: `AlertTriangle` para urgentes, `Clock` para expirando, `AlertCircle` ou `XCircle` para vencidos.
 
