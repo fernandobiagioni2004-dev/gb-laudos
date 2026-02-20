@@ -7,8 +7,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { AlertTriangle, ClipboardList, Monitor } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { AlertTriangle, AlertCircle, Clock, ClipboardList, Monitor } from 'lucide-react';
+import { cn, calcDeadline } from '@/lib/utils';
+
+type PrioridadeFilter = 'Todos' | 'Urgentes' | 'Expirando' | 'Vencidos';
+
+function getDeadline(e: { urgent?: boolean; urgentDate?: string; urgentTime?: string; createdAt: string }) {
+  return e.urgent && e.urgentDate
+    ? new Date(`${e.urgentDate}T${e.urgentTime || '23:59'}:00`)
+    : calcDeadline(e.createdAt);
+}
+
+function getDiffHours(e: { urgent?: boolean; urgentDate?: string; urgentTime?: string; createdAt: string }, now: Date) {
+  return (getDeadline(e).getTime() - now.getTime()) / (1000 * 60 * 60);
+}
 
 // Simulating as Dr. Carlos Menezes (Axel) for radiologista role
 function formatDateBR(dateStr: string) {
@@ -22,13 +34,43 @@ export default function ExamesDisponiveis() {
   const { exams, assumeExam } = useApp();
   const [confirm, setConfirm] = useState<string | null>(null);
   const [softwareFilter, setSoftwareFilter] = useState<'Todos' | 'Axel' | 'Morita'>('Todos');
+  const [prioridadeFilter, setPrioridadeFilter] = useState<PrioridadeFilter>('Todos');
 
-  const available = useMemo(() =>
+  const softwareFiltered = useMemo(() =>
     exams.filter(e =>
       e.status === 'Disponível' &&
       SIMULATED_RADIOLOGIST.software.includes(e.software) &&
       (softwareFilter === 'Todos' || e.software === softwareFilter)
-    ).sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0)), [exams, softwareFilter]);
+    ), [exams, softwareFilter]);
+
+  const now = useMemo(() => new Date(), []);
+
+  const counts = useMemo(() => {
+    const c = { Urgentes: 0, Expirando: 0, Vencidos: 0 };
+    softwareFiltered.forEach(e => {
+      const dh = getDiffHours(e, now);
+      if (e.urgent) c.Urgentes++;
+      if (dh >= 0 && dh < 12) c.Expirando++;
+      if (dh < 0) c.Vencidos++;
+    });
+    return c;
+  }, [softwareFiltered, now]);
+
+  const available = useMemo(() => {
+    const filtered = softwareFiltered.filter(e => {
+      if (prioridadeFilter === 'Todos') return true;
+      const dh = getDiffHours(e, now);
+      if (prioridadeFilter === 'Urgentes') return e.urgent;
+      if (prioridadeFilter === 'Expirando') return dh >= 0 && dh < 12;
+      if (prioridadeFilter === 'Vencidos') return dh < 0;
+      return true;
+    });
+    return filtered.sort((a, b) => {
+      const urgDiff = (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0);
+      if (urgDiff !== 0) return urgDiff;
+      return getDiffHours(a, now) - getDiffHours(b, now);
+    });
+  }, [softwareFiltered, prioridadeFilter, now]);
 
   const handleAssume = (examId: string) => {
     assumeExam(examId, SIMULATED_RADIOLOGIST.id);
@@ -62,6 +104,27 @@ export default function ExamesDisponiveis() {
         </ToggleGroupItem>
       </ToggleGroup>
 
+      <ToggleGroup
+        type="single"
+        value={prioridadeFilter}
+        onValueChange={(v) => v && setPrioridadeFilter(v as PrioridadeFilter)}
+        variant="outline"
+        size="sm"
+      >
+        <ToggleGroupItem value="Todos">Todos</ToggleGroupItem>
+        <ToggleGroupItem value="Urgentes" className="flex items-center gap-1.5">
+          <AlertTriangle className="h-3.5 w-3.5" />Urgentes
+          {counts.Urgentes > 0 && <span className="ml-1 text-xs bg-destructive/15 text-destructive px-1.5 rounded-full">{counts.Urgentes}</span>}
+        </ToggleGroupItem>
+        <ToggleGroupItem value="Expirando" className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5" />Expirando
+          {counts.Expirando > 0 && <span className="ml-1 text-xs bg-accent text-accent-foreground px-1.5 rounded-full">{counts.Expirando}</span>}
+        </ToggleGroupItem>
+        <ToggleGroupItem value="Vencidos" className="flex items-center gap-1.5">
+          <AlertCircle className="h-3.5 w-3.5" />Vencidos
+          {counts.Vencidos > 0 && <span className="ml-1 text-xs bg-destructive/15 text-destructive px-1.5 rounded-full">{counts.Vencidos}</span>}
+        </ToggleGroupItem>
+      </ToggleGroup>
       {available.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
           <ClipboardList className="h-12 w-12 opacity-20" />
