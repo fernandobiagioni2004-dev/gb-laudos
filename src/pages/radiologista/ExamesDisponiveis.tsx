@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { clients, radiologists, examTypes } from '@/data/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
+import { DeadlineBadge } from '@/components/DeadlineBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -108,6 +109,7 @@ export default function ExamesDisponiveis() {
                       <Monitor className="h-3 w-3" />{e.software}
                     </span>
                   </div>
+                  <DeadlineBadge createdAt={e.createdAt} urgent={e.urgent} urgentDate={e.urgentDate} urgentTime={e.urgentTime} />
                   <p className="text-xs text-muted-foreground">Solicitado em {formatDateBR(e.createdAt)}</p>
                   {e.observations && (
                     <p className="text-xs bg-muted/30 rounded p-2 text-muted-foreground">{e.observations}</p>
