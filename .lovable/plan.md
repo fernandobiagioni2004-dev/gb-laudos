@@ -1,41 +1,43 @@
 
 
-## Alterar cor da sidebar para roxo escuro suave
+## Adicionar logo GB Laudos na sidebar
 
 ### Resumo
 
-Trocar o fundo da sidebar de cinza escuro para um roxo escuro suave (tipo "deep purple" com baixa saturacao), mantendo o contraste com o conteudo principal claro. Os textos e elementos interativos da sidebar serao ajustados para combinar com o novo tom.
+Substituir o placeholder "PL" e o texto "Plataforma de Laudos" no cabecalho da sidebar pela logo da empresa GB Laudos (imagem enviada) e o nome "GB Laudos".
 
 ### Alteracoes
 
-#### Arquivo unico: `src/index.css`
+#### 1. Copiar a imagem do logo para o projeto
 
-Atualizar as variaveis de sidebar na linha 48-55 para tons de roxo escuro:
+- Copiar `user-uploads://image-2.png` para `src/assets/gb-laudos-logo.png`
 
-```css
-/* Sidebar — roxo escuro suave */
---sidebar-background: 260 30% 12%;        /* fundo principal: roxo escuro discreto */
---sidebar-foreground: 260 15% 75%;        /* texto: lavanda suave */
---sidebar-primary: 260 60% 65%;           /* destaque primario: roxo medio */
---sidebar-primary-foreground: 0 0% 100%;  /* texto sobre primario: branco */
---sidebar-accent: 260 25% 18%;            /* hover/ativo: roxo um pouco mais claro */
---sidebar-accent-foreground: 260 20% 92%; /* texto hover: quase branco */
---sidebar-border: 260 20% 18%;            /* bordas: roxo escuro sutil */
---sidebar-ring: 260 60% 65%;              /* ring de foco */
+#### 2. Atualizar `src/components/AppSidebar.tsx`
+
+- Importar a imagem: `import gbLaudosLogo from '@/assets/gb-laudos-logo.png'`
+- No header (sidebar expandida): substituir o quadrado roxo "PL" por uma tag `<img>` com o logo, e trocar "Plataforma / de Laudos" por "GB Laudos"
+- No header (sidebar colapsada): substituir o quadrado "PL" pelo logo redimensionado (h-8 w-8)
+- No footer: atualizar o texto "v1.0 — Plataforma de Laudos" para "v1.0 — GB Laudos"
+
+### Detalhes tecnicos
+
+Cabecalho expandido (substituicao):
+```tsx
+<div className="flex items-center gap-2">
+  <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
+  <div>
+    <p className="text-sm font-semibold text-sidebar-accent-foreground">GB Laudos</p>
+    <p className="text-xs text-sidebar-foreground">Laudos Odontologicos</p>
+  </div>
+</div>
 ```
 
-Tambem atualizar o logo "PL" no `AppSidebar.tsx` para usar um tom de roxo em vez de `bg-primary` (azul), ficando mais coerente com a sidebar roxa.
+Cabecalho colapsado:
+```tsx
+<div className="flex justify-center">
+  <img src={gbLaudosLogo} alt="GB Laudos" className="h-8 w-8 rounded-lg object-contain" />
+</div>
+```
 
-#### Arquivo: `src/components/AppSidebar.tsx`
-
-- Trocar `bg-primary` do logo para `bg-purple-600` (ou similar)
-- Trocar cor do item ativo de `bg-primary/15 text-primary` para `bg-purple-500/15 text-purple-300` e o dot indicador para `bg-purple-400`
-
-Isso garante que os elementos interativos da sidebar seguem o mesmo tom roxo.
-
-### Resultado esperado
-
-Sidebar com fundo roxo escuro discreto (nao vibrante), textos em tons de lavanda clara, itens ativos em roxo medio — criando uma identidade visual mais sofisticada mantendo boa legibilidade.
-
-2 arquivos alterados no total.
+2 arquivos afetados (1 asset copiado + 1 componente editado).
 
