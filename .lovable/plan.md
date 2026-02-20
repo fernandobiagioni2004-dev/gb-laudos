@@ -1,26 +1,43 @@
 
 
-## Tornar o Card inteiro clicavel para abrir detalhes
+## Filtros por status e data em formato brasileiro - Meus Exames (Externo)
 
 ### Resumo
 
-Atualmente, apenas o nome do paciente e clicavel para abrir o dialog de detalhes. A mudanca fara com que clicar em qualquer lugar do card abra o dialog, tornando a interacao mais intuitiva.
+Adicionar filtros por status (Todos, Disponivel, Em analise, Finalizado, Cancelado) usando Tabs na tela de Meus Exames do usuario externo, e converter a data de `YYYY-MM-DD` para o formato brasileiro `DD/MM/YYYY`.
 
-### Alteracoes em `src/pages/radiologista/MeusExames.tsx`
+### Alteracoes em `src/pages/externo/MeusExames.tsx`
 
-#### 1. Cards "Em Analise" (linha ~98)
-- Adicionar `onClick={() => setDetailId(e.id)}` e `cursor-pointer` no elemento `<Card>`
-- Manter o botao "Finalizar Laudo" com `e.stopPropagation()` para que ele nao abra o dialog ao ser clicado
+#### 1. Filtro por status com Tabs
+- Importar `Tabs, TabsList, TabsTrigger, TabsContent` de `@/components/ui/tabs`
+- Adicionar estado `activeFilter` com valor padrao `'all'`
+- Criar tabs: "Todos", "Disponivel", "Em analise", "Finalizado", "Cancelado"
+- Cada tab exibe a contagem de exames naquele status (ex: "Finalizados (3)")
+- Filtrar a lista `myExams` de acordo com o tab selecionado
 
-#### 2. Cards "Finalizados" (linha ~137)
-- Adicionar `onClick={() => setDetailId(e.id)}` e `cursor-pointer` no elemento `<Card>`
+#### 2. Data no formato brasileiro
+- Criar funcao auxiliar `formatDateBR(dateStr)` que converte `2026-02-01` para `01/02/2026`
+- Substituir a exibicao de `e.createdAt` pela versao formatada na linha de detalhes do card
 
-#### 3. Componente PatientNameLink (linha ~50-58)
-- Pode ser simplificado para um `<span>` sem handler de click proprio, ja que o card inteiro agora abre o dialog
-- Manter o estilo visual (font-semibold) mas remover hover:underline e o onClick, pois o card ja cuida disso
+### Detalhes tecnicos
 
-### Resultado esperado
+- Usar `useState` para controlar o filtro ativo
+- A filtragem sera feita com `useMemo` encadeado: primeiro filtra por cliente, depois por status
+- Funcao `formatDateBR`: split por `-`, inverte e junta com `/`
+- Nenhuma dependencia nova necessaria
 
-- Clicar em qualquer area do card abre o dialog de detalhes
-- O botao "Finalizar Laudo" continua funcionando normalmente sem abrir o dialog
+### Visual esperado
+
+```text
+Meus Exames
+X exames encontrados
+
+[Todos (6)] [Disponiveis (2)] [Em analise (1)] [Finalizados (3)] [Cancelados (0)]
+
++------------------------------------------------------------+
+| [icon] EX001  Joao Silva                                   |
+|        Panoramica · Axel · 01/02/2026                      |
+|                          [Finalizado] [Baixar Laudo]       |
++------------------------------------------------------------+
+```
 
