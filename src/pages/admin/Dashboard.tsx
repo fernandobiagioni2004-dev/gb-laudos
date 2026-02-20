@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { useApp } from '@/context/AppContext';
-import { clients, radiologists, examTypes } from '@/data/mockData';
+import { useExams, DbExam } from '@/hooks/useExams';
+import { useRadiologists } from '@/hooks/useRadiologists';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, DollarSign, TrendingUp, Users, Activity, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,8 @@ function fmt(n: number) {
 }
 
 export default function Dashboard() {
-  const { exams } = useApp();
+  const { data: exams = [] } = useExams();
+  const { data: rads = [] } = useRadiologists();
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -33,49 +34,48 @@ export default function Dashboard() {
   const filtered = useMemo(() => {
     return exams.filter(e => {
       if (e.status === 'Cancelado') return false;
-      return e.createdAt.startsWith(selectedMonth);
+      return e.criado_em?.startsWith(selectedMonth);
     });
   }, [exams, selectedMonth]);
 
   const kpis = useMemo(() => {
     const totalExams = filtered.length;
-    const revenue = filtered.reduce((a, e) => a + e.clientValue, 0);
-    const paid = filtered.reduce((a, e) => a + e.radiologistValue, 0);
-    const margin = filtered.reduce((a, e) => a + e.margin, 0);
+    const revenue = filtered.reduce((a, e) => a + (e.valor_cliente ?? 0), 0);
+    const paid = filtered.reduce((a, e) => a + (e.valor_radiologista ?? 0), 0);
+    const margin = filtered.reduce((a, e) => a + (e.margem ?? 0), 0);
     const ticket = totalExams > 0 ? revenue / totalExams : 0;
-    const activeClients = new Set(filtered.map(e => e.clientId)).size;
+    const activeClients = new Set(filtered.map(e => e.client_id)).size;
     return { totalExams, revenue, paid, margin, ticket, activeClients };
   }, [filtered]);
 
-  // Chart data: days in the selected month
   const chartData = useMemo(() => {
     const year = +y;
     const month = +m;
     const daysInMonth = new Date(year, month, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => {
       const day = i + 1;
-      const dateStr = `${selectedMonth}-${String(day).padStart(2, '0')}`;
-      const dayExams = exams.filter(e => e.createdAt === dateStr && e.status !== 'Cancelado');
+      const datePrefix = `${selectedMonth}-${String(day).padStart(2, '0')}`;
+      const dayExams = exams.filter(e => e.criado_em?.startsWith(datePrefix) && e.status !== 'Cancelado');
       return {
         date: `${day}/${month}`,
         exames: dayExams.length,
-        faturamento: dayExams.reduce((a, e) => a + e.clientValue, 0),
+        faturamento: dayExams.reduce((a, e) => a + (e.valor_cliente ?? 0), 0),
       };
     });
   }, [exams, selectedMonth, y, m]);
 
-  // Production table
   const production = useMemo(() => {
-    return radiologists.map(r => {
-      const rExams = filtered.filter(e => e.radiologistId === r.id && e.status === 'Finalizado');
+    return rads.map(r => {
+      const rExams = filtered.filter(e => e.radiologista_id === r.id && e.status === 'Finalizado');
       return {
-        ...r,
+        id: r.id,
+        name: r.nome,
         count: rExams.length,
-        generated: rExams.reduce((a, e) => a + e.clientValue, 0),
-        toReceive: rExams.reduce((a, e) => a + e.radiologistValue, 0),
+        generated: rExams.reduce((a, e) => a + (e.valor_cliente ?? 0), 0),
+        toReceive: rExams.reduce((a, e) => a + (e.valor_radiologista ?? 0), 0),
       };
     }).filter(r => r.count > 0);
-  }, [filtered]);
+  }, [filtered, rads]);
 
   return (
     <div className="space-y-6">
@@ -84,7 +84,6 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground">Visão geral operacional e financeira</p>
       </div>
 
-      {/* Month Selector */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(-1)}>
           <ChevronLeft className="h-4 w-4" />
@@ -95,7 +94,6 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <KpiCard icon={FileText} label="Total de Exames" value={String(kpis.totalExams)} color="blue" />
         <KpiCard icon={DollarSign} label="Faturamento" value={fmt(kpis.revenue)} color="emerald" />
@@ -105,7 +103,6 @@ export default function Dashboard() {
         <KpiCard icon={Users} label="Clientes Ativos" value={String(kpis.activeClients)} color="rose" />
       </div>
 
-      {/* Charts */}
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -117,10 +114,7 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                 <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
                 <Line type="monotone" dataKey="exames" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--primary))' }} name="Exames" />
               </LineChart>
             </ResponsiveContainer>
@@ -137,11 +131,7 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                 <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(v: number) => [fmt(v), 'Faturamento']}
-                />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} formatter={(v: number) => [fmt(v), 'Faturamento']} />
                 <Line type="monotone" dataKey="faturamento" stroke="hsl(142 71% 45%)" strokeWidth={2} dot={{ r: 3 }} name="Faturamento" />
               </LineChart>
             </ResponsiveContainer>
@@ -149,7 +139,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Production Table */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Produção por Radiologista</CardTitle>
