@@ -44,15 +44,15 @@
     --status-finalizado: 217 91% 60%;
     --status-cancelado: 0 72% 51%;
 
-    /* Sidebar — permanece escura */
-    --sidebar-background: 222 22% 7%;
-    --sidebar-foreground: 210 15% 75%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar — roxo escuro suave */
+    --sidebar-background: 260 30% 12%;
+    --sidebar-foreground: 260 15% 75%;
+    --sidebar-primary: 260 60% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 15% 13%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 222 15% 14%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 260 25% 18%;
+    --sidebar-accent-foreground: 260 20% 92%;
+    --sidebar-border: 260 20% 18%;
+    --sidebar-ring: 260 60% 65%;
   }
 }
 

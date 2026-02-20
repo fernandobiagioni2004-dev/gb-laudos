@@ -86,8 +86,8 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">PL</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600">
+              <span className="text-xs font-bold text-white">PL</span>
             </div>
             <div>
               <p className="text-sm font-semibold text-sidebar-accent-foreground">Plataforma</p>
@@ -96,8 +96,8 @@ export function AppSidebar() {
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">PL</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600">
+              <span className="text-xs font-bold text-white">PL</span>
             </div>
           </div>
         )}
@@ -169,14 +169,14 @@ export function AppSidebar() {
                           className={cn(
                             'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                             isActive
-                              ? 'bg-primary/15 text-primary font-medium'
+                              ? 'bg-purple-500/15 text-purple-300 font-medium'
                               : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                           )}
                         >
-                          <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive && 'text-primary')} />
+                          <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive && 'text-purple-300')} />
                           {!collapsed && <span>{item.title}</span>}
                           {isActive && !collapsed && (
-                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-purple-400" />
                           )}
                         </button>
                       </SidebarMenuButton>
