@@ -1,47 +1,46 @@
 
 
-## Adicionar nome do dentista e finalidade no dialog de detalhes - Meus Exames (Radiologista)
+## Padronizar todas as datas para formato brasileiro (DD/MM/YYYY)
 
-### Resumo
+### Problema
 
-O dialog de detalhes do exame na tela do radiologista ja exibe paciente, cliente, tipo, software, etc., mas faltam os campos **Dentista Solicitante** e **Finalidade do Exame**. Esses campos ja existem na interface `Exam` (adicionados anteriormente), so precisam ser exibidos.
+Algumas telas ainda exibem datas no formato americano (YYYY-MM-DD) diretamente dos dados mock, enquanto outras ja foram convertidas para DD/MM/YYYY.
 
-### Alteracao em `src/pages/radiologista/MeusExames.tsx`
+### Arquivos que precisam de alteracao
 
-#### 1. Adicionar campos no dialog de detalhes (linhas 170-196)
+#### 1. `src/pages/admin/Exames.tsx`
 
-Inserir dois novos campos no grid de informacoes, logo apos "Paciente" e "Data Nasc.":
+- Adicionar funcao `formatDateBR` para converter YYYY-MM-DD em DD/MM/YYYY
+- **Linha 153**: campo "Nascimento" (`detailExam.patientBirthDate`) -- aplicar `formatDateBR`
+- **Linha 185**: historico de status (`h.date`) -- aplicar `formatDateBR`
 
-- **Dentista Solicitante** (`detailExam.dentistName`) - exibe o nome do dentista ou "Nao informado"
-- **Finalidade** (`detailExam.purpose`) - exibe a finalidade do exame ou "Nao informada"
+#### 2. `src/pages/radiologista/MeuFinanceiro.tsx`
 
-#### 2. Adicionar nome do paciente nos cards (ja presente)
+- Adicionar funcao `formatDateBR`
+- **Linha 96**: coluna "Data" na tabela de historico financeiro (`e.createdAt`) -- aplicar `formatDateBR`
 
-O nome do paciente ja aparece nos cards via `PatientNameLink`. Nenhuma alteracao necessaria nesse ponto.
+#### 3. `src/pages/radiologista/ExamesDisponiveis.tsx`
 
-### Posicionamento no dialog
+- Adicionar funcao `formatDateBR`
+- **Linha 106**: texto "Solicitado em" (`e.createdAt`) -- aplicar `formatDateBR`
 
-```text
-+------------------------------------------+
-| Detalhes do Exame                  [X]   |
-| EX001 - Joao Silva                      |
-|                                          |
-| Paciente         | Data Nasc.            |
-| Joao Silva       | 01/01/1990            |
-| Dentista         | Finalidade            |  <-- NOVO
-| Dr. Carlos       | Implante              |  <-- NOVO
-| Cliente          | Tipo                  |
-| OralMax          | Panoramica (2D)       |
-| Software         | Data Criacao          |
-| Axel             | 01/02/2026            |
-|                                          |
-| Observacoes                              |
-| ...                                      |
-+------------------------------------------+
-```
+### Arquivos que ja estao corretos (nenhuma alteracao necessaria)
+
+- `src/pages/radiologista/MeusExames.tsx` -- ja usa `formatDate`
+- `src/pages/externo/MeusExames.tsx` -- ja usa `formatDateBR`
+- `src/pages/shared/Calendario.tsx` -- ja usa `date-fns` com locale `ptBR`
+- `src/pages/admin/Dashboard.tsx` -- grafico ja mostra DD/M
 
 ### Detalhes tecnicos
 
-- Apenas uma alteracao no arquivo `src/pages/radiologista/MeusExames.tsx`
-- Campos opcionais com fallback "Nao informado"
-- Nenhuma dependencia nova
+A funcao `formatDateBR` sera identica em todos os arquivos:
+
+```typescript
+function formatDateBR(dateStr: string) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+```
+
+Sao 3 arquivos alterados com mudancas minimas (adicionar a funcao helper e aplicar nos pontos que exibem datas cruas).
+
