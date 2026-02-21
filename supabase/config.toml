@@ -1,1 +1,4 @@
 project_id = "waiegsciaswaebpyzwfh"
+
+[functions.create-radiologist]
+verify_jwt = false

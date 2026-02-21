@@ -7,8 +7,14 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Eye, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Eye, Monitor, ChevronLeft, ChevronRight, UserPlus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
@@ -20,11 +26,47 @@ export default function Radiologistas() {
   const { data: clients = [] } = useSupabaseClients();
   const { data: examTypes = [] } = useExamTypes();
   const [detail, setDetail] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+
+  // New radiologist modal state
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newSoftwares, setNewSoftwares] = useState<string[]>([]);
+
+  function toggleSoftware(s: string) {
+    setNewSoftwares(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+  }
+
+  async function handleCreateRadiologist() {
+    if (!newName || !newEmail || !newPassword) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-radiologist', {
+        body: { nome: newName, email: newEmail, password: newPassword, softwares: newSoftwares },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Radiologista cadastrado com sucesso!');
+      setShowCreate(false);
+      setNewName(''); setNewEmail(''); setNewPassword(''); setNewSoftwares([]);
+      queryClient.invalidateQueries({ queryKey: ['radiologists'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao cadastrar radiologista');
+    } finally {
+      setCreating(false);
+    }
+  }
 
   function changeMonth(delta: number) {
     const [y, m] = selectedMonth.split('-').map(Number);
@@ -48,9 +90,15 @@ export default function Radiologistas() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Radiologistas</h1>
-        <p className="text-sm text-muted-foreground">{radiologists.length} radiologistas cadastrados</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Radiologistas</h1>
+          <p className="text-sm text-muted-foreground">{radiologists.length} radiologistas cadastrados</p>
+        </div>
+        <Button onClick={() => setShowCreate(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          Novo Radiologista
+        </Button>
       </div>
 
       <div className="flex items-center gap-3">
@@ -90,6 +138,7 @@ export default function Radiologistas() {
         ))}
       </div>
 
+      {/* Detail modal */}
       <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -116,6 +165,45 @@ export default function Radiologistas() {
                 </div>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create radiologist modal */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Radiologista</DialogTitle>
+            <DialogDescription>Cadastre um novo radiologista no sistema.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rad-nome">Nome *</Label>
+              <Input id="rad-nome" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nome completo" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rad-email">Email *</Label>
+              <Input id="rad-email" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="email@exemplo.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rad-password">Senha *</Label>
+              <Input id="rad-password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Senha inicial" />
+            </div>
+            <div className="space-y-2">
+              <Label>Softwares</Label>
+              <div className="flex gap-4">
+                {['OnDemand', 'iDixel'].map(s => (
+                  <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox checked={newSoftwares.includes(s)} onCheckedChange={() => toggleSoftware(s)} />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleCreateRadiologist} disabled={creating} className="w-full gap-2">
+              {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+              {creating ? 'Cadastrando...' : 'Cadastrar Radiologista'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
