@@ -1,41 +1,35 @@
 
 
-# Implementar Upload e Download Real de Arquivos
+# Adicionar botao para cadastrar radiologista na aba Radiologistas
 
-## Problema
-O upload e download de arquivos do exame sao totalmente simulados. O formulario de novo exame salva apenas o nome do arquivo no banco de dados, sem fazer upload real. O botao de download no perfil do radiologista apenas exibe uma mensagem "Download simulado".
+## Resumo
+Adicionar um botao "Novo Radiologista" no topo da pagina de Radiologistas que abre um modal para o admin cadastrar um novo radiologista. O cadastro criara uma conta de usuario com papel "radiologista" diretamente, usando o fluxo de signup existente via Supabase Auth.
 
-## Solucao
-Criar um bucket de storage, implementar o upload real no formulario de novo exame e o download real na tela do radiologista.
+## O que muda para o usuario
+- Um botao "Novo Radiologista" aparece ao lado do titulo da pagina
+- Ao clicar, abre um modal com campos: Nome, Email, Senha e Softwares (OnDemand/iDixel)
+- Ao confirmar, o sistema cria a conta do radiologista ja com o papel correto
 
 ## Detalhes Tecnicos
 
-### 1. Criar bucket de storage (migracao SQL)
-- Criar bucket `exam-files` (privado)
-- Criar politicas RLS no `storage.objects`:
-  - Cliente pode fazer upload em pastas do proprio `client_id`
-  - Radiologista pode ler arquivos de exames que estao atribuidos a ele ou disponiveis
-  - Admin tem acesso total
+### 1. Criar edge function `create-radiologist`
+- Arquivo: `supabase/functions/create-radiologist/index.ts`
+- Recebe: `{ nome, email, password, softwares }`
+- Valida que o chamador e admin (verifica auth token + papel na tabela `app_users`)
+- Usa `supabase.auth.admin.createUser()` com `email_confirm: true` para criar o usuario sem necessidade de confirmacao de email
+- Insere/atualiza o registro em `app_users` com `papel = 'radiologista'` e softwares selecionados
+- Retorna sucesso ou erro
 
-### 2. Alterar `src/pages/externo/NovoExame.tsx`
-- Apos criar o exame, fazer upload do arquivo para o bucket `exam-files` usando o path `{client_id}/{exam_id}/{filename}`
-- Atualizar o campo `arquivo_enviado` com o path completo no storage (nao apenas o nome)
-- Mostrar progresso/estado do upload
+### 2. Alterar `src/pages/admin/Radiologistas.tsx`
+- Adicionar botao "Novo Radiologista" com icone `UserPlus` no cabecalho
+- Adicionar estado para controlar modal de criacao
+- Modal com campos: Nome, Email, Senha, checkboxes de Softwares (OnDemand, iDixel)
+- Ao submeter, chamar a edge function via `supabase.functions.invoke('create-radiologist', ...)`
+- Invalidar query `['radiologists']` apos sucesso
+- Mostrar toast de sucesso/erro
 
-### 3. Alterar `src/pages/radiologista/MeusExames.tsx`
-- Substituir `handleDownloadFile` por logica real:
-  - Gerar URL assinada via `supabase.storage.from('exam-files').createSignedUrl(path, 60)`
-  - Abrir a URL em nova aba para download
-- Tambem atualizar a pagina de exames do admin (`src/pages/admin/Exames.tsx`) se houver botao de download
-
-### 4. Alterar `src/hooks/useExams.ts`
-- Na mutacao `useCreateExam`, aceitar o arquivo (`File`) como parametro opcional
-- Fazer o upload do arquivo apos inserir o exame no banco
-- Atualizar o registro do exame com o path real do arquivo
-
-### Fluxo resultante
-1. Cliente preenche formulario e seleciona arquivo ZIP
-2. Ao enviar, o exame e criado no banco e o arquivo e enviado ao storage
-3. O campo `arquivo_enviado` armazena o caminho real no storage (ex: `1/42/exame.zip`)
-4. Radiologista clica em "Baixar Arquivo" e recebe uma URL assinada que inicia o download
+### 3. Fluxo de seguranca
+- A edge function usa `SUPABASE_SERVICE_ROLE_KEY` para criar usuarios (admin API)
+- Valida que o chamador tem papel `admin` antes de prosseguir
+- O radiologista recebera um email com link para definir/redefinir senha (ou ja pode logar com a senha definida pelo admin)
 
