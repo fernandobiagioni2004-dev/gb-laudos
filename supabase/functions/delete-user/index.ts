@@ -77,7 +77,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Delete from app_users first
+    // Nullify radiologista_id in exams to avoid FK constraint violation
+    await adminClient
+      .from("exams")
+      .update({ radiologista_id: null })
+      .eq("radiologista_id", userId);
+
+    // Nullify user_id in meeting_participants
+    await adminClient
+      .from("meeting_participants")
+      .delete()
+      .eq("user_id", userId);
+
+    // Delete vacations
+    await adminClient
+      .from("vacations")
+      .delete()
+      .eq("user_id", userId);
+
+    // Delete price table entries
+    await adminClient
+      .from("price_table_radiologist")
+      .delete()
+      .eq("radiologista_id", userId);
+
+    // Delete from app_users
     const { error: deleteDbError } = await adminClient
       .from("app_users")
       .delete()
