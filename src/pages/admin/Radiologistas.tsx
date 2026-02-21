@@ -12,7 +12,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Eye, Monitor, ChevronLeft, ChevronRight, UserPlus, Loader2, Search, MoreVertical, Pencil } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Eye, Monitor, ChevronLeft, ChevronRight, UserPlus, Loader2, Search, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -38,6 +39,30 @@ export default function Radiologistas() {
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editSoftwares, setEditSoftwares] = useState<string[]>([]);
+
+  // Delete state
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: deleteId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Radiologista excluído com sucesso!');
+      setDeleteId(null);
+      queryClient.invalidateQueries({ queryKey: ['radiologists'] });
+      queryClient.invalidateQueries({ queryKey: ['app_users'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir radiologista');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function openEdit(r: any) {
     setEditId(r.id);
@@ -175,6 +200,10 @@ export default function Radiologistas() {
                       <Pencil className="h-4 w-4" />
                       Editar
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeleteId(r.id)} className="gap-2 text-destructive focus:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                      Excluir
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -296,6 +325,25 @@ export default function Radiologistas() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir radiologista</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este radiologista? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
