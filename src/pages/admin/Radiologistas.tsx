@@ -3,14 +3,16 @@ import { useExams } from '@/hooks/useExams';
 import { useRadiologists } from '@/hooks/useRadiologists';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useExamTypes } from '@/hooks/useExamTypes';
+import { useUpdateUser } from '@/hooks/useAppUsers';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Eye, Monitor, ChevronLeft, ChevronRight, UserPlus, Loader2 } from 'lucide-react';
+import { Eye, Monitor, ChevronLeft, ChevronRight, UserPlus, Loader2, Search, MoreVertical, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -27,6 +29,32 @@ export default function Radiologistas() {
   const { data: examTypes = [] } = useExamTypes();
   const [detail, setDetail] = useState<number | null>(null);
   const queryClient = useQueryClient();
+  const updateUser = useUpdateUser();
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Edit modal state
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editSoftwares, setEditSoftwares] = useState<string[]>([]);
+
+  function openEdit(r: any) {
+    setEditId(r.id);
+    setEditName(r.nome);
+    setEditSoftwares(r.softwares ?? []);
+  }
+
+  function toggleEditSoftware(s: string) {
+    setEditSoftwares(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+  }
+
+  function handleSaveEdit() {
+    if (!editId) return;
+    updateUser.mutate({ userId: editId, nome: editName, softwares: editSoftwares }, {
+      onSuccess: () => setEditId(null),
+    });
+  }
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -84,6 +112,12 @@ export default function Radiologistas() {
     return { ...r, examCount: done.length, inProgress: rExams.filter(e => e.status === 'Em análise').length, toReceive };
   }), [exams, radiologists, selectedMonth]);
 
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows;
+    const q = searchQuery.toLowerCase();
+    return rows.filter(r => r.nome.toLowerCase().includes(q));
+  }, [rows, searchQuery]);
+
   const detailRad = detail ? radiologists.find(r => r.id === detail) : null;
   const detailExams = detail ? exams.filter(e => e.radiologista_id === detail && e.criado_em?.startsWith(selectedMonth)) : [];
   const total = detailExams.filter(e => e.status === 'Finalizado').reduce((a, e) => a + (e.valor_radiologista ?? 0), 0);
@@ -101,6 +135,17 @@ export default function Radiologistas() {
         </Button>
       </div>
 
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar radiologista por nome..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeMonth(-1)}><ChevronLeft className="h-4 w-4" /></Button>
         <span className="text-sm font-medium capitalize min-w-[160px] text-center">{monthLabel}</span>
@@ -108,17 +153,30 @@ export default function Radiologistas() {
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {rows.map(r => (
+        {filteredRows.map(r => (
           <Card key={r.id} className="hover:border-border/80 transition-colors">
             <CardContent className="p-5 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                   <span className="text-sm font-bold text-primary">{r.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</span>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-semibold truncate">{r.nome}</p>
                   <p className="text-xs text-muted-foreground truncate">{r.email}</p>
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-popover">
+                    <DropdownMenuItem onClick={() => openEdit(r)} className="gap-2">
+                      <Pencil className="h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="flex flex-wrap gap-1">
                 {(r.softwares ?? []).map(s => (
@@ -165,6 +223,37 @@ export default function Radiologistas() {
                 </div>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit radiologist modal */}
+      <Dialog open={!!editId} onOpenChange={() => setEditId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Radiologista</DialogTitle>
+            <DialogDescription>Altere o nome e os softwares do radiologista.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-nome">Nome</Label>
+              <Input id="edit-nome" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome completo" />
+            </div>
+            <div className="space-y-2">
+              <Label>Softwares</Label>
+              <div className="flex gap-4">
+                {['OnDemand', 'iDixel'].map(s => (
+                  <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox checked={editSoftwares.includes(s)} onCheckedChange={() => toggleEditSoftware(s)} />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleSaveEdit} disabled={updateUser.isPending} className="w-full gap-2">
+              {updateUser.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {updateUser.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
